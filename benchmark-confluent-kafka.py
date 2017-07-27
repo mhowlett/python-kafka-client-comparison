@@ -11,13 +11,11 @@ topic_name = 'test_topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 
-queue_buffering_max_messages = 10000000
+queue_buffering_max_messages = 1000
 
 producer = Producer({
     'bootstrap.servers': sys.argv[1],
     'queue.buffering.max.messages': queue_buffering_max_messages,
-    'message.send.max.retries': 3, 
-    'retry.backoff.ms': 500,    
     'acks': 1,
     'linger.ms': 500
 })
@@ -26,6 +24,19 @@ message = bytearray()
 for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
+
+warmed_up = False
+def warmup_acked(err, msg):
+    global warmed_up
+    warmed_up = True
+
+producer.produce(topic_name, message, callback=warmup_acked)
+producer.poll(10)
+
+while (not warmed_up):
+    time.sleep(1)
+
+print("warmed up.")
 
 success_count = 0
 error_count = 0
@@ -38,27 +49,28 @@ def acked(err, msg):
     else:
         error_count += 1
 
-def warmup_acked(err, msg):
-    global start_time, no_dr_count
-    start_time = timeit.default_timer()
-    count = 0
-    L = int(queue_buffering_max_messages/2)
-    C = int(queue_buffering_max_messages/10)
-    for _ in range(N):
-        count += 1
-        producer.produce(topic_name, message, callback=acked)
-        
-        # don't start checking for DRs immediately.
-        if count > L:
-            for _ in range(C):
-                served = producer.poll(0)
-                if served == 0:
-                    no_dr_count += 1
-                    L += C
-                count -= 1
+count = 0
+L = int(queue_buffering_max_messages/2)
+C = int(queue_buffering_max_messages/10)
 
-producer.produce(topic_name, message, callback=warmup_acked)
-producer.poll(10)
+start_time = timeit.default_timer()
+
+for _ in range(N):
+    count += 1
+    producer.produce(topic_name, message, callback=acked)
+    
+    # don't start checking for DRs immediately.
+    if count > L:
+        for _ in range(C):
+            served = producer.poll(0.1)
+            if served == 0:
+                no_dr_count += 1
+                L += C
+                break
+            count -= 1
+        print('count: {}'.format(count))
+
+print("finished producing")
 
 while success_count + error_count < N:
     producer.poll(0.1)
