@@ -30,6 +30,9 @@ start_broker 4
 
 eval $(docker-machine env mhowlett-1)
 
+echo "waiting 15s before creating test topic"
+sleep 15
+
 docker run \
   --net=host \
   --rm \
