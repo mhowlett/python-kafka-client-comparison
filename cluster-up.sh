@@ -17,6 +17,7 @@ start_broker()
         --name=kafka \
         -e KAFKA_HEAP_OPTS="-Xmx512M -Xms512M" \
         -e KAFKA_ZOOKEEPER_CONNECT=$(docker-machine ip mhowlett-1):32181 \
+        -e KAFKA_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \
         -e KAFKA_BROKER_ID=$1 \
         confluentinc/cp-kafka:3.2.1
@@ -27,5 +28,10 @@ start_broker 3
 start_broker 4
 
 
-    # -v /data/zookeeper:/var/lib/zookeeper \
-    # -v /data/kafka:/var/lib/kafka \
+eval $(docker-machine env mhowlett-1)
+
+docker run \
+  --net=host \
+  --rm \
+  confluentinc/cp-kafka:3.2.1 \
+  kafka-topics --create --topic test-topic --partitions 3 --replication-factor 1 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
