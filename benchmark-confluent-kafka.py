@@ -11,11 +11,9 @@ topic_name = 'test-topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 
-queue_buffering_max_messages = 1000000
-
 producer = Producer({
     'bootstrap.servers': sys.argv[1],
-    'queue.buffering.max.messages': queue_buffering_max_messages,
+    'queue.buffering.max.messages': 10000000,
     'acks': 1,
     'linger.ms': 10000
 })
@@ -34,6 +32,7 @@ def acked(err, msg):
         if success_count == 0:
             print("warmed up")
             start_time = timeit.default_timer()
+            success_count -= 1
         success_count += 1
     else:
         error_count += 1
@@ -41,12 +40,14 @@ def acked(err, msg):
 for _ in range(N+1):
     while True:
         try:
+            # round-robin to all partitions.
             producer.produce(topic_name, message, callback=acked)
             break
         except BufferError:
-            # cannot reduce buffer except through call to poll.
+            # produce until buffer full, then get some delivery reports.
             producer.poll(1)
 
+# wait for DRs for all produce calls.
 producer.flush()
 
 elapsed = timeit.default_timer() - start_time
