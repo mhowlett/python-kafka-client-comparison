@@ -1,5 +1,7 @@
 eval $(docker-machine env mhowlett-1)
 
+confluent_version = $1
+
 if [ ! -z $(docker-machine ssh mhowlett-1 ls / | grep git) ]
   then
   docker-machine ssh mhowlett-1 "sudo rm -rf /git"
@@ -13,5 +15,6 @@ docker run -it \
   -v /git/python-kafka-client-comparison:/src \
   -e ZOOKEEPER=$(docker-machine ip mhowlett-1):32181 \
   -e KAFKA=$(docker-machine ip mhowlett-2):29092 \
+  -e CONFLUENT=${confluent_version} \
   python:3.6 \
   /src/bootstrap.sh

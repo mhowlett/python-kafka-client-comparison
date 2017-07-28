@@ -1,12 +1,14 @@
 
 eval $(docker-machine env mhowlett-1)
 
+confluent_version = $1
+
 docker run -d \
     --net=host \
     --name=zookeeper \
     -e KAFKA_HEAP_OPTS="-Xmx128M -Xms128M" \
     -e ZOOKEEPER_CLIENT_PORT=32181 \
-    confluentinc/cp-zookeeper:3.2.1
+    confluentinc/cp-zookeeper:${confluent_version}
 
 start_broker()
 {
@@ -20,7 +22,7 @@ start_broker()
         -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092 \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \
         -e KAFKA_BROKER_ID=$1 \
-        confluentinc/cp-kafka:3.2.1
+        confluentinc/cp-kafka:${confluent_version}
 }
 
 start_broker 2

@@ -2,10 +2,11 @@ import sys
 import timeit
 import time
 import uuid
+import os
 from confluent_kafka import Producer, Consumer, KafkaError
 
 
-# _____ CONSUME TEST ______
+# _____ PRODUCE TEST ______
 
 topic_name = 'test-topic'
 message_len = int(sys.argv[2])
@@ -51,11 +52,11 @@ for _ in range(N+1):
 # wait for DRs for all produce calls.
 producer.flush()
 
-print("# Type, Client, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
+print("# Type, Client, Broker, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, C, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
@@ -104,7 +105,7 @@ except KeyboardInterrupt:
 finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("P, C, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+        print("C, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 

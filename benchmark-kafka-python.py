@@ -4,19 +4,21 @@ import uuid
 from kafka import KafkaProducer, KafkaConsumer
 
 
-print("___ PRODUCE TEST ___")
+# _____ PRODUCE TEST ______
 
 topic_name = 'test_topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
+num_acks = int(sys.argv[4])
+linger = int(sys.argv[5])
 get_all_dr = False   # True: get all delivery reports. False: rely on .stop to flush messages.
 
 producer = KafkaProducer(
     bootstrap_servers = sys.argv[1],
-    buffer_memory = 1000000000,
-    acks = 1,
-    batch_size = 16384,   # batch is per partition.
-    linger_ms = 2000      # maximize batching.
+    buffer_memory = 500000 * message_len,
+    acks = num_acks,
+    batch_size = 16384,     # batch is per partition.
+    linger_ms = linger
 )
 
 message = bytearray()
@@ -59,7 +61,7 @@ else:
     print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
 
 
-print("___ CONSUMER TEST ___")
+# _____ CONSUME TEST ______
 
 success_count = 0
 error_count = 0
