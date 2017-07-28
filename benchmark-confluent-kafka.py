@@ -11,13 +11,14 @@ topic_name = 'test_topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 
-queue_buffering_max_messages = 1000
+queue_buffering_max_messages = 1000000
 
 producer = Producer({
     'bootstrap.servers': sys.argv[1],
     'queue.buffering.max.messages': queue_buffering_max_messages,
     'acks': 1,
-    'linger.ms': 500
+    'linger.ms': 10000
+ #   'compression.codec': 'lz4'
 })
 
 message = bytearray()
@@ -55,25 +56,53 @@ C = int(queue_buffering_max_messages/10)
 
 start_time = timeit.default_timer()
 
+additional = 0
 for _ in range(N):
-    count += 1
-    producer.produce(topic_name, message, callback=acked)
-    
+    while True:
+        try:
+            producer.produce(topic_name, message, callback=acked)
+            break
+        except BufferError:
+            # cannot reduce buffer except through call to poll.
+            producer.poll(1)
+            additional += 1
+
+print("making additional {}".format(additional))
+
+#for _ in range(additional):
+#    producer.produce(topic_name, message, callback=acked)
+
+#for _ in range(N):
+#    # count += 1
+#    producer.produce(topic_name, message, callback=acked)
+#
+#    if count % L == 0 and count > 0:
+#        sc = success_count
+#        served = producer.poll(1) # served != number of times acked called.
+#        inc = success_count - sc
+#        print("{} {}".format(served, inc))
+
     # don't start checking for DRs immediately.
-    if count > L:
-        for _ in range(C):
-            served = producer.poll(0.1)
-            if served == 0:
-                no_dr_count += 1
-                L += C
-                break
-            count -= 1
-        print('count: {}'.format(count))
+    #if count > L:
+    #    sc = success_count
+    #    served = producer.poll(2)
+    #    # served != number of times acked called.
+    #    inc = success_count - sc
+    #    count -= inc
+    #    print("{} {}".format(served, inc))
+    #
+    #    if inc == 0:
+    #        no_dr_count += 1
 
-print("finished producing")
+    #    # print('count: {}, success_count: {}'.format(count, success_count))
 
-while success_count + error_count < N:
-    producer.poll(0.1)
+print("finished producing {}".format(success_count))
+
+producer.flush()
+
+#while success_count + error_count < N:
+#    producer.poll(0.1)
+
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
