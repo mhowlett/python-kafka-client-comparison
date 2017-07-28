@@ -32,7 +32,6 @@ def acked(err, msg):
         if success_count == 0:
             print("warmed up")
             start_time = timeit.default_timer()
-            success_count -= 1
         success_count += 1
     else:
         error_count += 1
