@@ -13,8 +13,8 @@ N = int(sys.argv[3])
 
 producer = Producer({
     'bootstrap.servers': sys.argv[1],
-    'queue.buffering.max.messages': 10000000,
-    'acks': 1,
+    'queue.buffering.max.messages': 500000,
+    'acks': 3,
     'linger.ms': 10000
 })
 
