@@ -1,4 +1,3 @@
-
 eval $(docker-machine env mhowlett-1)
 
 docker kill zookeeper

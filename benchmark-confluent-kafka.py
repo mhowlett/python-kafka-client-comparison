@@ -10,12 +10,14 @@ print("___ PRODUCE TEST ___")
 topic_name = 'test-topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
+acks = int(sys.argv[4])
+linger = int(sys.argv[5])
 
 producer = Producer({
     'bootstrap.servers': sys.argv[1],
     'queue.buffering.max.messages': 500000,
-    'acks': 3,
-    'linger.ms': 10000
+    'acks': acks,
+    'linger.ms': linger
 })
 
 message = bytearray()
@@ -49,9 +51,11 @@ for _ in range(N+1):
 # wait for DRs for all produce calls.
 producer.flush()
 
+print("# Type, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
+
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("N: {0:.0f}, s: {1:.1f}, Msg/s: {2:.0f}, Mb/s: {3:.2f}".format(success_count + error_count, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, {0}, {1}, {2}, {3}, s: {5:.1f}, Msg/s: {6:.0f}, Mb/s: {7:.2f}".format(message_len, success_count + error_count, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 

@@ -27,14 +27,21 @@ start_broker 2
 start_broker 3
 start_broker 4
 
+echo "waiting 10s before creating test topics"
+sleep 10
 
 eval $(docker-machine env mhowlett-1)
 
-echo "waiting 10s before creating test topic"
-sleep 10
+create_topic()
+{
+    docker run \
+    --net=host \
+    --rm \
+    confluentinc/cp-kafka:3.2.1 \
+    kafka-topics --create --topic test-topic-p$1-r$2 --partitions $1 --replication-factor $2 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
+}
 
-docker run \
-  --net=host \
-  --rm \
-  confluentinc/cp-kafka:3.2.1 \
-  kafka-topics --create --topic test-topic --partitions 3 --replication-factor 1 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
+create_topic 1 1
+create_topic 1 3
+create_topic 3 1
+create_topic 3 3
