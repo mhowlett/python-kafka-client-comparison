@@ -5,7 +5,7 @@ import uuid
 from confluent_kafka import Producer, Consumer, KafkaError
 
 
-print("___ PRODUCE TEST ___")
+# _____ CONSUME TEST ______
 
 topic_name = 'test-topic'
 message_len = int(sys.argv[2])
@@ -32,7 +32,7 @@ def acked(err, msg):
     global success_count, error_count, start_time
     if err is None:
         if success_count == 0:
-            print("warmed up")
+            # warmed up.
             start_time = timeit.default_timer()
         success_count += 1
     else:
@@ -51,16 +51,16 @@ for _ in range(N+1):
 # wait for DRs for all produce calls.
 producer.flush()
 
-print("# Type, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
+print("# Type, Client, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, C, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
 
-print("___ CONSUME TEST ___")
+# _____ CONSUME TEST ______
 
 c = Consumer({'bootstrap.servers': sys.argv[1],
     'group.id': uuid.uuid1(),
@@ -104,7 +104,7 @@ except KeyboardInterrupt:
 finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("P, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+        print("P, C, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
