@@ -55,7 +55,7 @@ print("# Type, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, {0}, {1}, {2}, {3}, s: {4:.1f}, Msg/s: {5:.0f}, Mb/s: {6:.2f}".format(message_len, success_count + error_count, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
@@ -104,7 +104,7 @@ except KeyboardInterrupt:
 finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("s: {0:.1f}, Msg/s: {1:.0f}, Mb/s: {2:.2f}".format(elapsed, N/elapsed, N/elapsed*message_len/1048576))
+        print("P, {0}, {1}, {2}, {3}, {4:.1f}, {5:.0f}, {6:.2f}".format(message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
