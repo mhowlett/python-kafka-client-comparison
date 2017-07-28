@@ -25,19 +25,6 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-#warmed_up = False
-#def warmup_acked(err, msg):
-#    global warmed_up
-#   warmed_up = True
-#
-#producer.produce(topic_name, message, callback=warmup_acked)
-#producer.poll(10)
-#
-#while (not warmed_up):
-#    time.sleep(1)
-#
-#print("warmed up.")
-
 success_count = 0
 error_count = 0
 
@@ -51,11 +38,6 @@ def acked(err, msg):
     else:
         error_count += 1
 
-count = 0
-L = int(queue_buffering_max_messages/2)
-C = int(queue_buffering_max_messages/10)
-
-additional = 0
 for _ in range(N+1):
     while True:
         try:
@@ -69,7 +51,7 @@ producer.flush()
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("s: {0:.1f}, Msg/s: {1:.0f}, Mb/s: {2:.2f}".format(elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("N: {0:.0f}, s: {1:.1f}, Msg/s: {2:.0f}, Mb/s: {3:.2f}".format(success_count + error_count, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
