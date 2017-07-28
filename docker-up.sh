@@ -10,6 +10,6 @@ docker run -it \
   --rm \
   -v /git/python-kafka-client-comparison:/src \
   -e ZOOKEEPER=$(docker-machine ip mhowlett-1):32181 \
-  -e KAFKA=$(docker-machine ip mhowlett-1):29092 \
+  -e KAFKA=$(docker-machine ip mhowlett-2):29092 \
   python:3.6 \
   /src/bootstrap.sh
