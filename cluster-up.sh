@@ -17,7 +17,7 @@ start_broker()
         --name=kafka \
         -e KAFKA_HEAP_OPTS="-Xmx512M -Xms512M" \
         -e KAFKA_ZOOKEEPER_CONNECT=$(docker-machine ip mhowlett-1):32181 \
-        -e KAFKA_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \
+        -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092 \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \
         -e KAFKA_BROKER_ID=$1 \
         confluentinc/cp-kafka:3.2.1
