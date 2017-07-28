@@ -55,7 +55,7 @@ print("# Type, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, {0}, {1}, {2}, {3}, s: {5:.1f}, Msg/s: {6:.0f}, Mb/s: {7:.2f}".format(message_len, success_count + error_count, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, {0}, {1}, {2}, {3}, s: {4:.1f}, Msg/s: {5:.0f}, Mb/s: {6:.2f}".format(message_len, success_count + error_count, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
