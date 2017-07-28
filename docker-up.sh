@@ -2,9 +2,14 @@ eval $(docker-machine env mhowlett-1)
 
 if [ -z $(docker-machine ssh mhowlett-1 ls / | grep git) ]
   then
-  echo "sdf"
+  docker-machine ssh mhowlett-1 "cd /; sudo mkdir git; sudo chmod a+rwx git; cd git; git clone https://github.com/mhowlett/python-kafka-client-comparison.git;"
 fi
 
-#docker-machine ssh mhowlett-1 ls /data
-
-#docker run -it --network=host -v /git/python-client-comparison:/src python:3.6 /src/bootstrap.sh
+docker run -it \
+  --network=host \
+  --rm \
+  -v /git/python-kafka-client-comparison:/src \
+  -e ZOOKEEPER=$(docker-machine ip mhowlett-1):32181 \
+  -e KAFKA=$(docker-machine ip mhowlett-1):29092 \
+  python:3.6 \
+  /src/bootstrap.sh
