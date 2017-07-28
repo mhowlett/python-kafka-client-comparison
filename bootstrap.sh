@@ -13,5 +13,9 @@ pip install kafka-python
 pip install confluent-kafka
 pip install pykafka
 
+apt-get update
+apt-get --assume-yes install emacs
+apt-get --assume-yet install less
+
 cd /src
 bash
