@@ -9,18 +9,19 @@ from confluent_kafka import Producer, Consumer, KafkaError
 # _____ PRODUCE TEST ______
 
 bootstrap_server = sys.argv[1]
-topic_name = sys.argv[2]
-message_len = int(sys.argv[3])
-N = int(sys.argv[4])
-num_acks = int(sys.argv[5])
-linger = int(sys.argv[6])
+message_len = int(sys.argv[2])
+N = int(sys.argv[3])
+num_acks = sys.argv[4]
+num_partitions = sys.argv[5]
+
+topic_name = "test-topic-p" + num_partitions + "-r3"
 
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000,
+    'linger.ms': 10,  # ~50% performance increase over 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
-    'linger.ms': linger
 })
 
 message = bytearray()
