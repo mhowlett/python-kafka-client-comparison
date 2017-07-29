@@ -19,7 +19,7 @@ topic_name = "test-topic-p" + num_partitions + "-r3"
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000,
-    'linger.ms': 50,  # ~50% performance increase over 0.
+    'linger.ms': 50,  # see ~50% performance increase over 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })
@@ -29,28 +29,40 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
+warmup_count = 10
 success_count = 0
 error_count = 0
 
-def acked(err, msg):
-    global success_count, error_count, start_time
-    if err is None:
-        if success_count == 50:
-            # warmed up.
-            start_time = timeit.default_timer()
-        success_count += 1
-    else:
-        error_count += 1
+if num_acks > 0:
+    def acked(err, msg):
+        global success_count, error_count, start_time
+        if err is None:
+            if success_count == warmup_count:
+                # warmed up.
+                start_time = timeit.default_timer()
+            success_count += 1
+        else:
+            error_count += 1
 
-for _ in range(N+50):
-    while True:
-        try:
-            # round-robin to all partitions.
-            producer.produce(topic_name, message, callback=acked)
-            break
-        except BufferError:
-            # produce until buffer full, then get some delivery reports.
-            producer.poll(1)
+    for _ in range(N+warmup_count):
+        while True:
+            try:
+                # round-robin to all partitions.
+                producer.produce(topic_name, message, callback=acked)
+                break
+            except BufferError:
+                # produce until buffer full, then get some delivery reports.
+                producer.poll(1)
+
+else:
+    for _ in range(N):
+        while True:
+            try:
+                # round-robin to all partitions.
+                producer.produce(topic_name, message)
+                break
+            except BufferError:
+                time.sleep(0.001)
 
 # wait for DRs for all produce calls
 # (c.f. kafka-python where flush only guarentees all messages were sent)
@@ -65,7 +77,7 @@ if error_count == 0:
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
-            success_count + error_count - 50, 
+            success_count + error_count - warmup_count, 
             num_acks, 
             elapsed, 
             N/elapsed,
