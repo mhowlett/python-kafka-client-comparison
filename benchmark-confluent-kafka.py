@@ -34,6 +34,7 @@ success_count = 0
 error_count = 0
 
 if num_acks == "0":
+    print("acks == 0")
     for _ in range(N):
         while True:
             try:
@@ -41,7 +42,7 @@ if num_acks == "0":
                 producer.produce(topic_name, message)
                 break
             except BufferError:
-                time.sleep(0.001)
+                producer.poll(1)
 
 else:
     def acked(err, msg):
