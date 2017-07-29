@@ -33,7 +33,17 @@ warmup_count = 10
 success_count = 0
 error_count = 0
 
-if num_acks > 0:
+if num_acks == "0":
+    for _ in range(N):
+        while True:
+            try:
+                # round-robin to all partitions.
+                producer.produce(topic_name, message)
+                break
+            except BufferError:
+                time.sleep(0.001)
+
+else:
     def acked(err, msg):
         global success_count, error_count, start_time
         if err is None:
@@ -53,16 +63,6 @@ if num_acks > 0:
             except BufferError:
                 # produce until buffer full, then get some delivery reports.
                 producer.poll(1)
-
-else:
-    for _ in range(N):
-        while True:
-            try:
-                # round-robin to all partitions.
-                producer.produce(topic_name, message)
-                break
-            except BufferError:
-                time.sleep(0.001)
 
 # wait for DRs for all produce calls
 # (c.f. kafka-python where flush only guarentees all messages were sent)
