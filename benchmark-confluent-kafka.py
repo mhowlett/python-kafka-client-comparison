@@ -19,7 +19,7 @@ topic_name = "test-topic-p" + num_partitions + "-r3"
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000,
-    'linger.ms': 10,  # ~50% performance increase over 0.
+    'linger.ms': 50,  # ~50% performance increase over 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })
