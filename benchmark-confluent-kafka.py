@@ -35,6 +35,7 @@ error_count = 0
 
 if num_acks == "0":
     print("acks == 0")
+    start_time = timeit.default_timer()
     for _ in range(N):
         while True:
             try:
