@@ -35,14 +35,14 @@ error_count = 0
 def acked(err, msg):
     global success_count, error_count, start_time
     if err is None:
-        if success_count == 0:
+        if success_count == 50:
             # warmed up.
             start_time = timeit.default_timer()
         success_count += 1
     else:
         error_count += 1
 
-for _ in range(N+1):
+for _ in range(N+50):
     while True:
         try:
             # round-robin to all partitions.
@@ -65,7 +65,7 @@ if error_count == 0:
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
-            success_count + error_count - 1, 
+            success_count + error_count - 50, 
             num_acks, 
             elapsed, 
             N/elapsed,
