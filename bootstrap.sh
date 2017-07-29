@@ -14,8 +14,8 @@ pip install confluent-kafka
 pip install pykafka
 
 apt-get update
-apt-get install emacs
-apt-get install less
+apt-get install -y emacs
+apt-get install -y less
 
 cd /src
 bash

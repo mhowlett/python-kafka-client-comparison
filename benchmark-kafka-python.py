@@ -1,7 +1,7 @@
 import sys
 import timeit
 import uuid
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer, KafkaConsumer, KafkaTimeoutError
 
 
 # _____ PRODUCE TEST ______
@@ -16,9 +16,13 @@ get_all_dr = False   # True: get all delivery reports. False: rely on .stop to f
 producer = KafkaProducer(
     bootstrap_servers = sys.argv[1],
     buffer_memory = 500000 * message_len,
+    retries = 0,
     acks = num_acks,
-    batch_size = 16384,     # batch is per partition.
-    linger_ms = linger
+    linger_ms = linger,
+    max_block_ms = 0,
+    # retry_backoff_ms = 100, # doesn't come intp play because retries = 0.
+    # max_in_flight_requests_per_connection = 5, # c.f. confluent -> 1000000. ??
+    # batch_size = 16384 # (default). Controls max number of messages in a batch.
 )
 
 message = bytearray()
@@ -35,14 +39,21 @@ start_time = timeit.default_timer()
 if get_all_dr:
     success_count = 0
     error_count = 0
+    future_count = 0
 
     futures = []
     for _ in range(N):
-        futures.append(producer.send(topic_name, message))
+        try:
+            futures.append(producer.send(topic_name, message))
+        except KafkaTimeoutError:
+            dr = futures[future_count].get(10)
+            future_count += 1
+            print(future_count)
 
-    for f in futures:
-        # what about produce errors?
+    for i in range(future_count, futures.count):
+        f = futures[i]
         dr = f.get(10)
+        # todo: check errors.
         success_count += 1
 
     elapsed = timeit.default_timer() - start_time
@@ -52,9 +63,11 @@ if get_all_dr:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
 else:
+    # Don't require any DRs.
     for _ in range(N):
         producer.send(topic_name, message)
 
+    # Flush only waits until messages have been sent.
     producer.flush()
 
     elapsed = timeit.default_timer() - start_time

@@ -1,7 +1,13 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "usage: $0 <confluent-version-number>"
+    exit 1
+fi
 
 eval $(docker-machine env mhowlett-1)
 
-confluent_version = $1
+confluent_version=$1
 
 docker run -d \
     --net=host \
@@ -39,7 +45,7 @@ create_topic()
     docker run \
     --net=host \
     --rm \
-    confluentinc/cp-kafka:3.2.1 \
+    confluentinc/cp-kafka:${confluent_version} \
     kafka-topics --create --topic test-topic-p$1-r$2 --partitions $1 --replication-factor $2 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
 }
 

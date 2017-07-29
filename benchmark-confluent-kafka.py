@@ -8,16 +8,18 @@ from confluent_kafka import Producer, Consumer, KafkaError
 
 # _____ PRODUCE TEST ______
 
-topic_name = 'test-topic'
-message_len = int(sys.argv[2])
-N = int(sys.argv[3])
-acks = int(sys.argv[4])
-linger = int(sys.argv[5])
+bootstrap_server = sys.argv[1]
+topic_name = sys.argv[2]
+message_len = int(sys.argv[3])
+N = int(sys.argv[4])
+num_acks = int(sys.argv[5])
+linger = int(sys.argv[6])
 
 producer = Producer({
-    'bootstrap.servers': sys.argv[1],
+    'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000,
-    'acks': acks,
+    'message.send.max.retries': 0,
+    'acks': num_acks,
     'linger.ms': linger
 })
 
@@ -49,26 +51,26 @@ for _ in range(N+1):
             # produce until buffer full, then get some delivery reports.
             producer.poll(1)
 
-# wait for DRs for all produce calls.
+# wait for DRs for all produce calls
+# (c.f. kafka-python where flush only guarentees all messages were sent)
 producer.flush()
 
 print("# Type, Client, Broker, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, success_count + error_count - 1, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print("P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, success_count + error_count - 1, num_acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
 
 # _____ CONSUME TEST ______
 
-c = Consumer({'bootstrap.servers': sys.argv[1],
+c = Consumer({'bootstrap.servers': bootstrap_server,
     'group.id': uuid.uuid1(),
     'enable.auto.commit': False,
     'session.timeout.ms': 6000,
-    'queue.buffering.max.messages': 10000000,
-    'queue.buffering.max.kbytes': 1000000,
+    'queued.min.messages': 1000000,
     'default.topic.config': {'auto.offset.reset': 'smallest'}
 })
 
@@ -105,7 +107,7 @@ except KeyboardInterrupt:
 finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("C, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, N, acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+        print("C, C, {0}, {1}, {2}, -, -, {3:.1f}, {4:.0f}, {5:.2f}".format(os.environ['CONFLUENT'], message_len, N, elapsed, N/elapsed, N/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 

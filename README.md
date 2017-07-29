@@ -12,3 +12,5 @@ use `docker-up.sh {confluent-verision}` to start a docker instance (on the zooke
 
   - `KAFKA` - the address:port of a kafka broker to use as bootstrap server.
   - `ZOOKEEPER` - address:port of the zookeeper broker.
+  - `CONFLUENT` = `{confluent-version}`.
+  

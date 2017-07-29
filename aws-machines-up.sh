@@ -1,3 +1,9 @@
+#!/bin/bash
+
+if [ "$#" -ne 0 ]; then
+    echo "usage: $0"
+    exit 1
+fi
 
 create_machine()
 {
