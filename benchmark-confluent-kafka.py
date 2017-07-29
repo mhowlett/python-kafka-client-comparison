@@ -56,11 +56,20 @@ for _ in range(N+1):
 # (c.f. kafka-python where flush only guarentees all messages were sent)
 producer.flush()
 
-print("# Type, Client, Broker, Msg Size, Msg Count, Acks, Linger.ms, s, Msg/s, Mb/s")
+print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(os.environ['CONFLUENT'], message_len, success_count + error_count - 1, num_acks, linger, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+    print(
+        "P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+            os.environ['CONFLUENT'], 
+            num_partitions,
+            message_len, 
+            success_count + error_count - 1, 
+            num_acks, 
+            elapsed, 
+            N/elapsed,
+            N/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
@@ -108,7 +117,15 @@ except KeyboardInterrupt:
 finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("C, C, {0}, {1}, {2}, -, -, {3:.1f}, {4:.0f}, {5:.2f}".format(os.environ['CONFLUENT'], message_len, N, elapsed, N/elapsed, N/elapsed*message_len/1048576))
+        print(
+            "C, C, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+                os.environ['CONFLUENT'], 
+                num_partitions,
+                message_len, 
+                N, 
+                elapsed, 
+                N/elapsed, 
+                N/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
