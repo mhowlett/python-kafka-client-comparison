@@ -15,3 +15,13 @@ if [ ! -z $(docker-machine ssh mhowlett-1 ls / | grep git) ]
 fi
 docker-machine ssh mhowlett-1 \
     "cd /; sudo mkdir git; sudo chmod a+rwx git; cd git; git clone https://github.com/mhowlett/python-kafka-client-comparison.git;"
+
+docker run -it \
+  --network=host \
+  --rm \
+  -v /git/python-kafka-client-comparison:/src \
+  -e ZOOKEEPER=$(docker-machine ip mhowlett-1):32181 \
+  -e KAFKA=$(docker-machine ip mhowlett-2):29092 \
+  -e CONFLUENT=${confluent_version} \
+  openjdk:8 \
+  /src/java-bootstrap.sh

@@ -34,7 +34,6 @@ success_count = 0
 error_count = 0
 
 if num_acks == "0":
-    print("acks == 0")
     start_time = timeit.default_timer()
     for _ in range(N):
         while True:
@@ -43,6 +42,7 @@ if num_acks == "0":
                 producer.produce(topic_name, message)
                 break
             except BufferError:
+                # even with no DRs this is necessary ?
                 producer.poll(1)
 
 else:

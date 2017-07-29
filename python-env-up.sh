@@ -25,4 +25,4 @@ docker run -it \
   -e KAFKA=$(docker-machine ip mhowlett-2):29092 \
   -e CONFLUENT=${confluent_version} \
   python:3.6 \
-  /src/bootstrap.sh
+  /src/python-bootstrap.sh
