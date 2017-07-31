@@ -14,7 +14,7 @@ num_messages = int(sys.argv[3])
 num_acks = sys.argv[4]
 num_partitions = int(sys.argv[5])
 
-topic_name = "test-topic-p{0}-r3".format(num_partitions)
+topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 producer = Producer({
     'bootstrap.servers': bootstrap_server,

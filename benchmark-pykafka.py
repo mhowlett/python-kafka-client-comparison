@@ -4,11 +4,12 @@ from pykafka import KafkaClient
 
 print("___ PRODUCE TEST ___")
 
-topic_name = b'test_topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 get_all_dr = True   # True: get all delivery reports. False: rely on .stop to flush messages.
+num_partitions = int(sys.argv[5])
 
+topic_name = b"test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 message = bytearray()
 for i in range(message_len):

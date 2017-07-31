@@ -40,7 +40,7 @@ public class Program {
     }
     String message = sb.toString();
 
-    String topicName = "test-topic-p" + partitionCount + "-r3";
+    String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
 
     Producer<Object, String> producer = new KafkaProducer<>(props);
     errorCount = 0;
@@ -108,7 +108,7 @@ public class Program {
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 
-    String topicName = "test-topic-p" + partitionCount + "-r3";
+    String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
 
     int successCount = 0;
 

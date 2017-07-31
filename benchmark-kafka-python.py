@@ -6,12 +6,13 @@ from kafka import KafkaProducer, KafkaConsumer, KafkaTimeoutError
 
 # _____ PRODUCE TEST ______
 
-topic_name = 'test_topic'
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 num_acks = int(sys.argv[4])
 linger = int(sys.argv[5])
 get_all_dr = False   # True: get all delivery reports. False: rely on .stop to flush messages.
+
+topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 producer = KafkaProducer(
     bootstrap_servers = sys.argv[1],

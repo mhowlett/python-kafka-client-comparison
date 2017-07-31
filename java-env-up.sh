@@ -18,6 +18,7 @@ docker-machine ssh mhowlett-1 \
 
 docker run -it \
   --network=host \
+  --name=env \
   --rm \
   -v /git/python-kafka-client-comparison:/src \
   -e ZOOKEEPER=$(docker-machine ip mhowlett-1):32181 \

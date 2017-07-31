@@ -51,22 +51,27 @@ create_topic()
 
 # num_partitions, replication_factor, for_message_size
 
-create_topic 1 1 10
-create_topic 1 3 10
-create_topic 3 1 10
-create_topic 3 3 10
+create_topic 1 1 64
+create_topic 1 3 64
+create_topic 3 1 64
+create_topic 3 3 64
 
-create_topic 1 1 100
-create_topic 1 3 100
-create_topic 3 1 100
-create_topic 3 3 100
+create_topic 1 1 128
+create_topic 1 3 128
+create_topic 3 1 128
+create_topic 3 3 128
 
-create_topic 1 1 1000
-create_topic 1 3 1000
-create_topic 3 1 1000
-create_topic 3 3 1000
+create_topic 1 1 256
+create_topic 1 3 256
+create_topic 3 1 256
+create_topic 3 3 256
 
-create_topic 1 1 10000
-create_topic 1 3 10000
-create_topic 3 1 10000
-create_topic 3 3 10000
+create_topic 1 1 512
+create_topic 1 3 512
+create_topic 3 1 512
+create_topic 3 3 512
+
+create_topic 1 1 1024
+create_topic 1 3 1024
+create_topic 3 1 1024
+create_topic 3 3 1024
