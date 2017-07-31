@@ -38,6 +38,7 @@ public class Program {
     props.put("acks", acks);
     props.put("retries", 0);
     props.put("linger.ms", linger);
+    props.put("enable.idempotence", true);
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
