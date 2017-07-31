@@ -46,10 +46,27 @@ create_topic()
     --net=host \
     --rm \
     confluentinc/cp-kafka:${confluent_version} \
-    kafka-topics --create --topic test-topic-p$1-r$2 --partitions $1 --replication-factor $2 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
+    kafka-topics --create --topic test-topic-p$1-r$2-s$3 --partitions $1 --replication-factor $2 --if-not-exists --zookeeper $(docker-machine ip mhowlett-1):32181
 }
 
-create_topic 1 1
-create_topic 1 3
-create_topic 3 1
-create_topic 3 3
+# num_partitions, replication_factor, for_message_size
+
+create_topic 1 1 10
+create_topic 1 3 10
+create_topic 3 1 10
+create_topic 3 3 10
+
+create_topic 1 1 100
+create_topic 1 3 100
+create_topic 3 1 100
+create_topic 3 3 100
+
+create_topic 1 1 1000
+create_topic 1 3 1000
+create_topic 3 1 1000
+create_topic 3 3 1000
+
+create_topic 1 1 10000
+create_topic 1 3 10000
+create_topic 3 1 10000
+create_topic 3 3 10000

@@ -30,9 +30,7 @@ public class Program {
     props.put("bootstrap.servers", bootstrapServer);
     props.put("acks", acks);
     props.put("retries", 0);
-    props.put("batch.size", 16384);
-    props.put("linger.ms", 50);
-    props.put("block.on.buffer.full", true);
+    props.put("linger.ms", 1000);
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
@@ -94,25 +92,58 @@ public class Program {
     producer.close();
   }
 
-  public static void Consume(int count, int partitionCount) {
+  public static void Consume(int messageCount, int messageLength, int partitionCount) {
     Properties props = new Properties();
     props.put("bootstrap.servers", "localhost:9092");
-    props.put("group.id", "test");
-    props.put("enable.auto.commit", "true");
-    props.put("auto.commit.interval.ms", "1000");
-    props.put("session.timeout.ms", "30000");
+    props.put("group.id", java.util.UUID.randomUUID().toString());
+    props.put("enable.auto.commit", "false");
+    props.put("session.timeout.ms", "6000");
+    props.put("auto.offset.reset", "earliest");
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 
     String topicName = "test-topic-p" + partitionCount + "-r3";
 
+    int successCount = 0;
+
     consumer.subscribe(Arrays.asList(topicName));
     while (true) {
       ConsumerRecords<String, String> records = consumer.poll(100);
-      for (ConsumerRecord<String, String> record : records)
-        System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
+      boolean done = false;
+      for (ConsumerRecord<String, String> record : records) {
+        if (successCount == 0) {
+          startTime = System.currentTimeMillis();
+        }
+        successCount += 1;
+        if (successCount > messageCount) {
+          done = true;
+          break;
+        }
+      }
+      if (done) {
+        break;
+      }
     }
+
+    final long endTime = System.currentTimeMillis();
+
+    final long timeMs = (endTime - startTime);
+    String version = System.getenv("CONFLUENT");
+
+    System.out.println(
+        "C, " +
+        "J, " +
+        version + ", " +
+        partitionCount + ", " +
+        messageLength + ", " +
+        messageCount + ", " +
+        "-, " +
+        String.format("%.1f", ((double)timeMs / 1000.0)) + ", " +
+        String.format("%.0f", ((double)messageCount / ((double)timeMs/1000.0))) + ", " +
+        String.format("%.2f", ((double)messageCount / ((double)timeMs/1000.0)) * messageLength /
+                              1048576.0)
+    );
   }
 
   public static void main(String[] args) {
@@ -123,7 +154,9 @@ public class Program {
     String numAcks = args[3];
     int partitionCount = Integer.parseInt(args[4]);
 
-    System.out.printf("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s");
+    System.out.println(
+        "# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s"
+    );
 
     Produce(
       bootstrapServer,
@@ -133,6 +166,6 @@ public class Program {
       partitionCount
     );
 
-    // Consume(messageCount);
+    Consume(messageCount, messageLength, partitionCount);
   }
 }
