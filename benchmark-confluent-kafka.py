@@ -12,7 +12,7 @@ bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
 N = int(sys.argv[3])
 num_acks = sys.argv[4]
-num_partitions = sys.argv[5]
+num_partitions = int(sys.argv[5])
 
 topic_name = "test-topic-p" + num_partitions + "-r3"
 
