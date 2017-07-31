@@ -92,7 +92,7 @@ c = Consumer({'bootstrap.servers': bootstrap_server,
     'group.id': uuid.uuid1(),
     'enable.auto.commit': False,
     'session.timeout.ms': 6000,
-    'queued.min.messages': 1000000,
+    'queued.min.messages': 1000000, # reflects librdkafka perf test.
     'default.topic.config': {'auto.offset.reset': 'smallest'}
 })
 
