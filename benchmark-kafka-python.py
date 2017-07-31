@@ -34,10 +34,8 @@ for i in range(message_len):
 message = bytes(message)
 
 # warm up
-for _ in range(num_partitions):
-    # round-robin
-    future = producer.send(topic_name, message)
-    future.get(timeout=60)
+future = producer.send(topic_name, message)
+result = future.get(timeout=60)
 
 start_time = timeit.default_timer()
 
