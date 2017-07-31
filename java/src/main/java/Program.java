@@ -74,7 +74,22 @@ public class Program {
 
     final long endTime = System.currentTimeMillis();
 
-    System.out.println("Total execution time: " + (endTime - startTime) );
+    final long timeMs = (endTime - startTime);
+    String version = System.getenv("CONFLUENT");
+
+    System.out.println(
+        "P, " +
+        "J, " +
+        version + ", " +
+        partitionCount + ", " +
+        messageLength + ", " +
+        messageCount + ", " +
+        acks + ", " +
+        String.format("%.1f", ((double)timeMs / 1000.0)) + ", " +
+        String.format("%.0f", ((double)messageCount / ((double)timeMs/1000.0))) + ", " +
+        String.format("%.2f", ((double)messageCount / ((double)timeMs/1000.0)) * messageLength /
+                               1048576.0)
+    );
 
     producer.close();
   }
@@ -107,6 +122,8 @@ public class Program {
     int messageCount = Integer.parseInt(args[2]);
     String numAcks = args[3];
     int partitionCount = Integer.parseInt(args[4]);
+
+    System.out.printf("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s");
 
     Produce(
       bootstrapServer,
