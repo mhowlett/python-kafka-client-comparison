@@ -61,7 +61,6 @@ public class Program {
                 }
                 successCount += 1;
               }
-              System.out.println("The offset of the record we just sent is: " + metadata.offset());
             }
           });
     }
