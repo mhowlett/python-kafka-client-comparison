@@ -9,11 +9,11 @@ eval $(docker-machine env mhowlett-1)
 
 confluent_version=$1
 
+# -e KAFKA_HEAP_OPTS="-Xmx128M -Xms128M" \  - when using a micro instance.
 docker run -d \
     --net=host \
     --name=zookeeper \
     -v /data/zookeeper:/var/lib/zookeeper \
-    -e KAFKA_HEAP_OPTS="-Xmx128M -Xms128M" \
     -e ZOOKEEPER_CLIENT_PORT=32181 \
     confluentinc/cp-zookeeper:${confluent_version}
 
@@ -21,11 +21,11 @@ start_broker()
 {
     eval $(docker-machine env mhowlett-$1)
 
+    # -e KAFKA_HEAP_OPTS="-Xmx512M -Xms512M" \  - when using a micro instance.
     docker run -d \
         --net=host \
         --name=kafka \
         -v /data/kafka:/var/lib/kafka \
-        -e KAFKA_HEAP_OPTS="-Xmx512M -Xms512M" \
         -e KAFKA_ZOOKEEPER_CONNECT=$(docker-machine ip mhowlett-1):32181 \
         -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092 \
         -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip mhowlett-$1):29092 \

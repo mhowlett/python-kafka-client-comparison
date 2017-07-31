@@ -22,7 +22,14 @@ public class Program {
   private static int successCount;
   private static long startTime;
 
-  public static void Produce(String bootstrapServer, int messageLength, int messageCount, String acks, int partitionCount) {
+  public static void Produce(
+      String bootstrapServer,
+      int messageLength,
+      int messageCount,
+      String acks,
+      int partitionCount,
+      int linger
+  ) {
     BasicConfigurator.configure();
     Logger.getRootLogger().setLevel(Level.ERROR);
 
@@ -30,38 +37,41 @@ public class Program {
     props.put("bootstrap.servers", bootstrapServer);
     props.put("acks", acks);
     props.put("retries", 0);
-    props.put("linger.ms", 1000);
-    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    props.put("linger.ms", linger);
+    props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
-    StringBuilder sb = new StringBuilder();
+    byte[] message = new byte[messageLength];
     for (int i=0; i<messageLength; ++i) {
-      sb.append((char)(48 + i % 10));
+      message[i] = (byte)(48 + i % 10);
     }
-    String message = sb.toString();
 
     String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
 
-    Producer<Object, String> producer = new KafkaProducer<>(props);
+    Callback cb = new Callback() {
+      public void onCompletion(RecordMetadata metadata, Exception e) {
+        if (e != null) {
+          errorCount += 1;
+        }
+        else {
+          if (successCount == 0) {
+            startTime = System.currentTimeMillis();
+          }
+          successCount += 1;
+        }
+      }
+    };
+
+    Producer<byte[], byte[]> producer = new KafkaProducer<>(props);
+    ProducerRecord<byte[], byte[]> record;
     errorCount = 0;
     successCount = 0;
     for (int i = 0; i < messageCount + 1; i++) {
-      producer.send(
-          new ProducerRecord<>(topicName, null, message),
-          new Callback() {
-            public void onCompletion(RecordMetadata metadata, Exception e) {
-              if (e != null) {
-                errorCount += 1;
-              }
-              else {
-                if (successCount == 0) {
-                  startTime = System.currentTimeMillis();
-                }
-                successCount += 1;
-              }
-            }
-          });
+      record = new ProducerRecord<>(topicName, message);
+      producer.send(record, cb);
     }
+
+    long waitStartTime = System.currentTimeMillis();
 
     while (successCount + errorCount < messageCount) {
       try {
@@ -71,6 +81,8 @@ public class Program {
     }
 
     final long endTime = System.currentTimeMillis();
+
+    System.out.println(String.format("# final wait time (ms): ", endTime-waitStartTime));
 
     final long timeMs = (endTime - startTime);
     String version = System.getenv("CONFLUENT");
@@ -104,9 +116,9 @@ public class Program {
     props.put("enable.auto.commit", "false");
     props.put("session.timeout.ms", "6000");
     props.put("auto.offset.reset", "earliest");
-    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(props);
 
     String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
 
@@ -114,9 +126,9 @@ public class Program {
 
     consumer.subscribe(Arrays.asList(topicName));
     while (true) {
-      ConsumerRecords<String, String> records = consumer.poll(100);
+      ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
       boolean done = false;
-      for (ConsumerRecord<String, String> record : records) {
+      for (ConsumerRecord<byte[], byte[]> record : records) {
         if (successCount == 0) {
           startTime = System.currentTimeMillis();
         }
@@ -158,6 +170,7 @@ public class Program {
     int messageCount = Integer.parseInt(args[2]);
     String numAcks = args[3];
     int partitionCount = Integer.parseInt(args[4]);
+    int linger = Integer.parseInt(args[5]);
 
     System.out.println(
         "# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s"
@@ -168,7 +181,8 @@ public class Program {
       messageLength,
       messageCount,
       numAcks,
-      partitionCount
+      partitionCount,
+      linger
     );
 
     Consume(
