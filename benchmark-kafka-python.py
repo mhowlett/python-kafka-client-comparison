@@ -57,7 +57,7 @@ if num_acks != "0":
             future_count += 1
             print(future_count)
 
-    for i in range(future_count, len(futures.count)):
+    for i in range(future_count, len(futures)):
         f = futures[i]
         dr = f.get(10)
         # todo: check errors.
