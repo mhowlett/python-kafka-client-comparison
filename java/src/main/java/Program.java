@@ -82,7 +82,7 @@ public class Program {
 
     final long endTime = System.currentTimeMillis();
 
-    System.out.println(String.format("# final wait time (ms): ", endTime-waitStartTime));
+    System.out.println(String.format("# final wait time (ms): {0}", endTime-waitStartTime));
 
     final long timeMs = (endTime - startTime);
     String version = System.getenv("CONFLUENT");
