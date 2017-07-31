@@ -92,9 +92,14 @@ public class Program {
     producer.close();
   }
 
-  public static void Consume(int messageCount, int messageLength, int partitionCount) {
+  public static void Consume(
+      String bootstrapServer,
+      int messageCount,
+      int messageLength,
+      int partitionCount
+  ) {
     Properties props = new Properties();
-    props.put("bootstrap.servers", "localhost:9092");
+    props.put("bootstrap.servers", bootstrapServer);
     props.put("group.id", java.util.UUID.randomUUID().toString());
     props.put("enable.auto.commit", "false");
     props.put("session.timeout.ms", "6000");
@@ -166,6 +171,11 @@ public class Program {
       partitionCount
     );
 
-    Consume(messageCount, messageLength, partitionCount);
+    Consume(
+        bootstrapServer,
+        messageCount,
+        messageLength,
+        partitionCount
+    );
   }
 }
