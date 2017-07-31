@@ -42,6 +42,7 @@ for _ in range(num_partitions):
 start_time = timeit.default_timer()
 
 if num_acks != "0":
+    print("# acks: " + num_acks)
     success_count = 0
     error_count = 0
     future_count = 0
@@ -55,7 +56,7 @@ if num_acks != "0":
         except KafkaTimeoutError:
             dr = futures[future_count].get(10)
             future_count += 1
-            print(future_count)
+            # print(future_count)
 
     for i in range(future_count, len(futures)):
         f = futures[i]
@@ -70,7 +71,7 @@ if num_acks != "0":
         print("# success: {}, # error: {}".format(success_count, error_count))
 
 else:
-    # Don't require any DRs.
+    print("# Not waiting for DRs")
     for _ in range(num_messages):
         producer.send(topic_name, message)
 
