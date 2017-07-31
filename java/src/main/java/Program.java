@@ -1,19 +1,26 @@
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 
 public class Program {
+
+  private static int errorCount;
+  private static int successCount;
+  private static long startTime;
 
   public static void Produce(String bootstrapServer, int messageLength, int messageCount, String acks, int partitionCount) {
     BasicConfigurator.configure();
@@ -37,11 +44,35 @@ public class Program {
 
     String topicName = "test-topic-p" + partitionCount + "-r3";
 
-    final long startTime = System.currentTimeMillis();
     Producer<Object, String> producer = new KafkaProducer<>(props);
-    for (int i = 0; i < messageCount; i++) {
-      producer.send(new ProducerRecord<>(topicName, null, message));
+    errorCount = 0;
+    successCount = 0;
+    for (int i = 0; i < messageCount + 1; i++) {
+      producer.send(
+          new ProducerRecord<>(topicName, null, message),
+          new Callback() {
+            public void onCompletion(RecordMetadata metadata, Exception e) {
+              if (e != null) {
+                errorCount += 1;
+              }
+              else {
+                if (successCount == 0) {
+                  startTime = System.currentTimeMillis();
+                }
+                successCount += 1;
+              }
+              System.out.println("The offset of the record we just sent is: " + metadata.offset());
+            }
+          });
     }
+
+    while (successCount + errorCount < messageCount) {
+      try {
+        TimeUnit.MILLISECONDS.sleep(20);
+      }
+      catch (InterruptedException e) {}
+    }
+
     final long endTime = System.currentTimeMillis();
 
     System.out.println("Total execution time: " + (endTime - startTime) );
