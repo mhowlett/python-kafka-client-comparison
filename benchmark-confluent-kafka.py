@@ -19,7 +19,7 @@ topic_name = "test-topic-p" + num_partitions + "-r3"
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000,
-    'linger.ms': 50,  # see ~50% performance increase over 0.
+    'linger.ms': 50,  # see ~50% performance increase when this is > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })
@@ -29,7 +29,6 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-warmup_count = 10
 success_count = 0
 error_count = 0
 
@@ -38,25 +37,24 @@ if num_acks == "0":
     for _ in range(N):
         while True:
             try:
-                # round-robin to all partitions.
+                # round-robin to all partitions - ?
                 producer.produce(topic_name, message)
                 break
             except BufferError:
-                # even with no DRs this is necessary ?
-                producer.poll(1)
+                producer.flush()
 
 else:
     def acked(err, msg):
         global success_count, error_count, start_time
         if err is None:
-            if success_count == warmup_count:
+            if success_count == num_partitions:
                 # warmed up.
                 start_time = timeit.default_timer()
             success_count += 1
         else:
             error_count += 1
 
-    for _ in range(N+warmup_count):
+    for _ in range(N+num_partitions):
         while True:
             try:
                 # round-robin to all partitions.
@@ -79,7 +77,7 @@ if error_count == 0:
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
-            success_count + error_count - warmup_count, 
+            success_count + error_count - num_partitions, 
             num_acks, 
             elapsed, 
             N/elapsed,

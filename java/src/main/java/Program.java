@@ -15,40 +15,34 @@ import org.apache.log4j.Logger;
 
 public class Program {
 
-  public static void Produce(int count) {
+  public static void Produce(String bootstrapServer, int messageLength, int messageCount, String acks, int partitionCount) {
     BasicConfigurator.configure();
-    Logger.getRootLogger().setLevel(Level.DEBUG);
+    Logger.getRootLogger().setLevel(Level.ERROR);
 
     Properties props = new Properties();
-    props.put("bootstrap.servers", "localhost:9092");
-    props.put("", "localhost:2181");
-    props.put("acks", "all");
+    props.put("bootstrap.servers", bootstrapServer);
+    props.put("acks", acks);
     props.put("retries", 0);
     props.put("batch.size", 16384);
-    props.put("linger.ms", 1);
-
-    // The total bytes of memory the producer can use to buffer records waiting to be sent to the server.
-    // If records are sent faster than they can be delivered to the server the producer will either block
-    // or throw an exception based on the preference specified by block.on.buffer.full.
-    //               default: 33554432
-    props.put("buffer.memory", 1048576);
+    props.put("linger.ms", 50);
     props.put("block.on.buffer.full", true);
-
-    // The maximum size of a request. This is also effectively a cap on the maximum record size. Note that
-    // the server has its own cap on record size which may be different from this. This setting will limit
-    // the number of record batches the producer will send in a single request to avoid sending huge requests.
-    //                   default: 1048576
-    props.put("max.request.size", 1048576);
-
-    // does it make sense to put the above two equal?
-
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-    Producer<String, String> producer = new KafkaProducer<>(props);
-    for(int i = 0; i < count; i++) {
-      producer.send(new ProducerRecord<>("my-topic", Integer.toString(i), Integer.toString(i)));
+    StringBuilder sb = new StringBuilder();
+    for (int i=0; i<messageLength; ++i) {
+      sb.append((char)(48 + i % 10));
     }
+    String message = sb.toString();
+    
+    final long startTime = System.currentTimeMillis();
+    Producer<Object, String> producer = new KafkaProducer<>(props);
+    for (int i = 0; i < messageCount; i++) {
+      producer.send(new ProducerRecord<>("my-topic", null, message));
+    }
+    final long endTime = System.currentTimeMillis();
+
+    System.out.println("Total execution time: " + (endTime - startTime) );
 
     producer.close();
   }
@@ -72,19 +66,21 @@ public class Program {
   }
 
   public static void main(String[] args) {
-    if (args.length != 2) {
-      System.out.println("args: C|P N");
-      return;
-    }
 
-    int count = Integer.parseInt(args[1]);
-    if (args[0].equals("C")) {
-      Consume(count);
-    }
-    else {
-      Produce(count);
-    }
+    String bootstrapServer = args[0];
+    int messageLength = Integer.parseInt(args[1]);
+    int messageCount = Integer.parseInt(args[2]);
+    String numAcks = args[3];
+    int partitionCount = Integer.parseInt(args[3]);
 
-    System.out.println("done...");
+    Produce(
+      bootstrapServer,
+      messageLength,
+      messageCount,
+      numAcks,
+      partitionCount
+    );
+
+    // Consume(messageCount);
   }
 }
