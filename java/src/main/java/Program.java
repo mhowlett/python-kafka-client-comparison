@@ -34,11 +34,13 @@ public class Program {
       sb.append((char)(48 + i % 10));
     }
     String message = sb.toString();
-    
+
+    String topicName = "test-topic-p" + partitionCount + "-r3";
+
     final long startTime = System.currentTimeMillis();
     Producer<Object, String> producer = new KafkaProducer<>(props);
     for (int i = 0; i < messageCount; i++) {
-      producer.send(new ProducerRecord<>("my-topic", null, message));
+      producer.send(new ProducerRecord<>(topicName, null, message));
     }
     final long endTime = System.currentTimeMillis();
 
@@ -47,7 +49,7 @@ public class Program {
     producer.close();
   }
 
-  public static void Consume(int count) {
+  public static void Consume(int count, int partitionCount) {
     Properties props = new Properties();
     props.put("bootstrap.servers", "localhost:9092");
     props.put("group.id", "test");
@@ -57,7 +59,10 @@ public class Program {
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-    consumer.subscribe(Arrays.asList("my-topic"));
+
+    String topicName = "test-topic-p" + partitionCount + "-r3";
+
+    consumer.subscribe(Arrays.asList(topicName));
     while (true) {
       ConsumerRecords<String, String> records = consumer.poll(100);
       for (ConsumerRecord<String, String> record : records)
@@ -71,7 +76,7 @@ public class Program {
     int messageLength = Integer.parseInt(args[1]);
     int messageCount = Integer.parseInt(args[2]);
     String numAcks = args[3];
-    int partitionCount = Integer.parseInt(args[3]);
+    int partitionCount = Integer.parseInt(args[4]);
 
     Produce(
       bootstrapServer,
