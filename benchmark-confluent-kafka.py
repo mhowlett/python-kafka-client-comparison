@@ -10,7 +10,7 @@ from confluent_kafka import Producer, Consumer, KafkaError
 
 bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
-N = int(sys.argv[3])
+num_messages = int(sys.argv[3])
 num_acks = sys.argv[4]
 num_partitions = int(sys.argv[5])
 
@@ -34,7 +34,7 @@ error_count = 0
 
 if num_acks == "0":
     start_time = timeit.default_timer()
-    for _ in range(N):
+    for _ in range(num_messages):
         while True:
             try:
                 # round-robin to all partitions - ?
@@ -54,7 +54,7 @@ else:
         else:
             error_count += 1
 
-    for _ in range(N+num_partitions):
+    for _ in range(num_messages + num_partitions):
         while True:
             try:
                 # round-robin to all partitions.
@@ -80,8 +80,8 @@ if error_count == 0:
             success_count + error_count - num_partitions, 
             num_acks, 
             elapsed, 
-            N/elapsed,
-            N/elapsed*message_len/1048576))
+            num_messages/elapsed,
+            num_messages/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
@@ -120,7 +120,7 @@ try:
         else:
             error_count += 1
 
-        if (success_count + error_count >= N):
+        if (success_count + error_count >= num_messages):
             break
 
 except KeyboardInterrupt:
@@ -134,10 +134,10 @@ finally:
                 os.environ['CONFLUENT'], 
                 num_partitions,
                 message_len, 
-                N, 
+                num_messages, 
                 elapsed, 
-                N/elapsed, 
-                N/elapsed*message_len/1048576))
+                num_messages/elapsed, 
+                num_messages/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
