@@ -6,16 +6,17 @@ from kafka import KafkaProducer, KafkaConsumer, KafkaTimeoutError
 
 # _____ PRODUCE TEST ______
 
+bootstrap_servers = sys.argv[1]
 message_len = int(sys.argv[2])
-N = int(sys.argv[3])
-num_acks = int(sys.argv[4])
-linger = int(sys.argv[5])
-get_all_dr = False   # True: get all delivery reports. False: rely on .stop to flush messages.
+num_messages = int(sys.argv[3])
+num_acks = sys.argv[4]
+num_partitions = int(sys.argv[5])
+linger = int(sys.argv[6])
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 producer = KafkaProducer(
-    bootstrap_servers = sys.argv[1],
+    bootstrap_servers = bootstrap_servers,
     buffer_memory = 500000 * message_len,
     retries = 0,
     acks = num_acks,
@@ -32,19 +33,23 @@ for i in range(message_len):
 message = bytes(message)
 
 # warm up
-future = producer.send(topic_name, message)
-result = future.get(timeout=60)
+for _ in range(num_partitions):
+    # round-robin
+    future = producer.send(topic_name, message)
+    future.get(timeout=10)
 
 start_time = timeit.default_timer()
 
-if get_all_dr:
+if num_acks != "0":
     success_count = 0
     error_count = 0
     future_count = 0
 
+    # the only way to get delivery reports seems to be via futures.
     futures = []
-    for _ in range(N):
+    for _ in range(num_messages):
         try:
+            # max_block_ms is set to 0, so this will throw exception if queue full.
             futures.append(producer.send(topic_name, message))
         except KafkaTimeoutError:
             dr = futures[future_count].get(10)
@@ -59,20 +64,20 @@ if get_all_dr:
 
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
+        print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
 else:
     # Don't require any DRs.
-    for _ in range(N):
+    for _ in range(num_messages):
         producer.send(topic_name, message)
 
     # Flush only waits until messages have been sent.
     producer.flush()
 
     elapsed = timeit.default_timer() - start_time
-    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
+    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
 
 
 # _____ CONSUME TEST ______
@@ -97,11 +102,11 @@ start_time = timeit.default_timer()
 for msg in consumer:
     # what about consume errors?
     success_count += 1
-    if (success_count + error_count >= N):
+    if (success_count + error_count >= num_messages):
         break
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
+    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))

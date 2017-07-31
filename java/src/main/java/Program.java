@@ -36,10 +36,8 @@ public class Program {
     Properties props = new Properties();
     props.put("bootstrap.servers", bootstrapServer);
     props.put("acks", acks);
-    props.put("retries", 1);
-    props.put("max.in.flight.requests.per.connection", 1);
+    props.put("retries", 0);
     props.put("linger.ms", linger);
-    props.put("enable.idempotence", true);
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
