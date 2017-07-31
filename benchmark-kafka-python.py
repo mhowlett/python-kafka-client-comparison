@@ -1,7 +1,8 @@
 import sys
 import timeit
 import uuid
-from kafka import KafkaProducer, KafkaConsumer, KafkaTimeoutError
+from kafka.errors import KafkaTimeoutError
+from kafka import KafkaProducer, KafkaConsumer
 
 
 # _____ PRODUCE TEST ______
