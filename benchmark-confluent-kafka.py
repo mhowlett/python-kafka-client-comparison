@@ -6,10 +6,6 @@ import os
 from confluent_kafka import Producer, Consumer, KafkaError
 
 
-print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
-
-# _____ PRODUCE TEST ______
-
 bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
@@ -18,10 +14,15 @@ num_partitions = int(sys.argv[5])
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
+print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+
+
+# _____ PRODUCE TEST ______
+
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
-    'linger.ms': 50,  # see ~50% performance increase when this is > 0. todo: verify varying this more has little impact.
+    'linger.ms': 50,  # see ~50% performance increase when this is > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })

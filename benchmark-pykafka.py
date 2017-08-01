@@ -4,7 +4,6 @@ import time
 import os
 from pykafka import KafkaClient
 
-print("___ PRODUCE TEST ___")
 
 bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
@@ -14,6 +13,11 @@ num_partitions = int(sys.argv[5])
 linger = int(sys.argv[6])
 
 topic_name = bytes("test-topic-p{0}-r3-s{1}".format(num_partitions, message_len), 'utf-8')
+
+print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+
+
+# _____ PRODUCE TEST ______
 
 message = bytearray()
 for i in range(message_len):
@@ -26,38 +30,38 @@ topic = client.topics[topic_name]
 with topic.get_producer(
     delivery_reports = (False if num_acks == 0 else True), 
     use_rdkafka = True,
-    linger_ms = linger,
+    linger_ms = 50,
     required_acks = num_acks, # how to specify acks = 'all'? 
-    min_queued_messages = 1000,   
-    max_queued_messages = 10000000 # exception thrown if queue fills up.
+    max_queued_messages = 500000 # exception thrown if queue fills up.
 ) as producer:
 
-    # first 'warm up' the producer (deliver at least one message successfully before starting 
-    # any benchmarking) to reduce the chance of one-off effects.
-    for _ in range(num_partitions):
-        producer.produce(message)
-        if num_acks != 0:
+    # warm-up.
+    if num_acks > 0:
+        for _ in range(num_partitions):
+            producer.produce(message)
             msg, err = producer.get_delivery_report(block=True)
             if err is not None:
                 print("# Error occured producing warm-up message.")
-
-    if num_acks == 0:
+    else:
+        for _ in range(num_partitions):
+            producer.produce(message)
         time.sleep(5)
 
-    start_time = timeit.default_timer()
-    
     success_count = 0
     error_count = 0
     dr_count = 0
-
+    
+    start_time = timeit.default_timer()
+    
     for _ in range(num_messages):
         while True:
             try:
                 producer.produce(message)
                 break
-            except:
+            except e:
+                print(e)
                 if num_acks != 0:
-                    msg, err = producer.get_delivery_report(block=True)
+                    msg, err = producer.get_delivery_report(block=False)
                     dr_count += 1
                     if err is not None:
                         error_count += 1
@@ -67,6 +71,7 @@ with topic.get_producer(
                     time.sleep(0.01)
     
     if num_acks != 0:
+        print ("# delivery reports handled during produce: {}".format(dr_count))
         for _ in range(dr_count, num_messages):
             msg, err = producer.get_delivery_report(block=True, timeout=1)
             if err is not None:
@@ -94,7 +99,7 @@ with topic.get_producer(
     producer.stop()
 
 
-print("___ CONSUMER TEST ___")
+# _____ CONSUME TEST ______
 
 client = KafkaClient(hosts=bootstrap_server)
 topic = client.topics[topic_name]

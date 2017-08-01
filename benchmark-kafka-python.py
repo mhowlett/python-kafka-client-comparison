@@ -7,8 +7,6 @@ from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
 
 
-# _____ PRODUCE TEST ______
-
 bootstrap_servers = sys.argv[1]
 message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
@@ -19,6 +17,11 @@ num_partitions = int(sys.argv[5])
 linger = int(sys.argv[6])
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
+
+print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+
+
+# _____ PRODUCE TEST ______
 
 producer = KafkaProducer(
     bootstrap_servers = bootstrap_servers,
@@ -66,7 +69,6 @@ if num_acks != 0:
             elapsed, 
             num_messages/elapsed,
             num_messages/elapsed*message_len/1048576))
-
 
 else:
     for _ in range(num_messages):
