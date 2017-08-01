@@ -26,7 +26,8 @@ producer = KafkaProducer(
     retries = 0,
     acks = num_acks,
     linger_ms = linger,
-    max_block_ms = 0,
+    max_block_ms = 10,
+    max_in_flight_requests_per_connection = 20
     # max_in_flight_requests_per_connection = 5, # c.f. confluent -> 1000000. ??
     # batch_size = 16384 # (default). Controls max number of messages in a batch.
 )
