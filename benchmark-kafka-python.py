@@ -1,5 +1,6 @@
 import sys
 import timeit
+import time
 import uuid
 import os
 from kafka.errors import KafkaTimeoutError
@@ -52,13 +53,15 @@ if num_acks != 0:
     # the only way to get delivery reports seems to be via futures.
     futures = []
     for _ in range(num_messages):
-        try:
-            # max_block_ms is set to 0, so this will throw exception if queue full.
-            futures.append(producer.send(topic_name, message))
-        except KafkaTimeoutError:
-            except_count += 1
-            dr = futures[future_count].get(60)
-            future_count += 1
+        while True:
+            try:
+                # max_block_ms is set to 0, so this will throw exception if queue full.
+                futures.append(producer.send(topic_name, message))
+            except KafkaTimeoutError:
+                except_count += 1
+                # dr = futures[future_count].get(60)
+                # future_count += 1
+                time.sleep(0.01)
 
     for i in range(future_count, len(futures)):
         f = futures[i]
