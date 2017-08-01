@@ -45,7 +45,6 @@ for _ in range(num_partitions):
 start_time = timeit.default_timer()
 
 if num_acks != 0:
-    print("# acks: {}".format(num_acks))
     success_count = 0
 
     futures = []
@@ -70,7 +69,6 @@ if num_acks != 0:
 
 
 else:
-    print("# Not waiting on futures")
     for _ in range(num_messages):
         producer.send(topic_name, message)
     producer.flush()

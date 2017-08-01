@@ -1,13 +1,16 @@
 import sys
 import timeit
+import os
 from pykafka import KafkaClient
 
 print("___ PRODUCE TEST ___")
 
+bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
-N = int(sys.argv[3])
-get_all_dr = True   # True: get all delivery reports. False: rely on .stop to flush messages.
+num_messages = int(sys.argv[3])
+num_acks = sys.argv[4]
 num_partitions = int(sys.argv[5])
+linger = int(sys.argv[6])
 
 topic_name = b"test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
@@ -16,83 +19,76 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-client = KafkaClient(hosts=sys.argv[1])
+client = KafkaClient(hosts=bootstrap_server)
 topic = client.topics[topic_name]
 
 with topic.get_producer(
-    delivery_reports = True, 
+    delivery_reports = (False if num_acks == 0 else True), 
     use_rdkafka = True,
-    linger_ms = 2000,
+    linger_ms = linger,
+    required_acks = num_acks,
     min_queued_messages = 1000,   
     max_queued_messages = 10000000 # exception thrown if queue fills up.
 ) as producer:
-    
-    start_time = timeit.default_timer()
 
     # first 'warm up' the producer (deliver at least one message successfully before starting 
     # any benchmarking) to reduce the chance of one-off effects.
-    producer.produce(message)
-    msg, err = producer.get_delivery_report(block=True)
+    for _ in range(num_partitions):
+        producer.produce(message)
+        msg, err = producer.get_delivery_report(block=True)
+        if err is not None:
+            print("# Error occured producing warm-up message.")
 
-    if err is not None:
-        print("An error occured producing warm-up message.")
+    start_time = timeit.default_timer()
+    
+    success_count = 0
+    error_count = 0
+    dr_count = 0
 
-    else:
-        L = 100000          # number of messages to produce before checking for delivery reports.
-        C = 2000            # number of delivery reports to retrieve at one time.
-
-        global err_cnt
-        count = 0
-
-        success_count = 0
-        error_count = 0
-        except_count = 0
-
-        start_time = timeit.default_timer()
-
-        for _ in range(N):
-            count += 1
-            producer.produce(message)
-            
-            if count > L:
-                try:
-                    for _ in range(C):
-                        msg, err = producer.get_delivery_report(block=False)
-                        count -= 1
-                        if err is not None:
-                            error_count += 1
-                        else:
-                            success_count += 1
-                except:
-                    except_count += 1
-                    L += C
-
-        if get_all_dr:
+    for _ in range(num_messages):
+        while True:
             try:
-                for _ in range(count):
-                    msg, err = producer.get_delivery_report(block=True, timeout=1)
-                    if err is not None:
-                        error_count += 1
-                    else:
-                        success_count += 1
+                producer.produce(message)
+                break
             except:
-                except_count += 1
-        
-        else:
-            producer.stop() # Flushes all messages.
+                msg, err = producer.get_delivery_report(block=True)
+                dr_count += 1
+                if err is not None:
+                    error_count += 1
+                else:
+                    success_count += 1
+    
+    if num_acks != 0:
+        for _ in range(dr_count, num_messages):
+            msg, err = producer.get_delivery_report(block=True, timeout=1)
+            if err is not None:
+                error_count += 1
+            else:
+                success_count += 1
+    else:
+        producer.stop() # Flushes all messages.
 
-        elapsed = timeit.default_timer() - start_time
-        if error_count == 0:
-            print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
-        else:
-            print("# success: {}, # except: {}, # error: {}".format(success_count, except_count, error_count))
+    elapsed = timeit.default_timer() - start_time
+    if error_count == 0:
+        print(
+            "P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+                os.environ['CONFLUENT'], 
+                num_partitions,
+                message_len, 
+                success_count + error_count, 
+                num_acks, 
+                elapsed, 
+                num_messages/elapsed,
+                num_messages/elapsed*message_len/1048576))
+    else:
+        print("# success: {}, # error: {}".format(success_count, error_count))
 
-        producer.stop()
+    producer.stop()
 
 
 print("___ CONSUMER TEST ___")
 
-client = KafkaClient(hosts=sys.argv[1])
+client = KafkaClient(hosts=bootstrap_server)
 topic = client.topics[topic_name]
 
 consumer = topic.get_simple_consumer(
@@ -114,12 +110,20 @@ while True:
     else:
         error_count += 1
 
-    if success_count + error_count >= N:
+    if success_count + error_count >= num_messages:
         break
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(N/elapsed, N/elapsed*message_len/1048576))
+    print(
+        "C, C, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+            os.environ['CONFLUENT'], 
+            num_partitions,
+            message_len, 
+            num_messages, 
+            elapsed, 
+            num_messages/elapsed, 
+            num_messages/elapsed*message_len/1048576))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
