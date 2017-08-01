@@ -8,7 +8,7 @@ print("___ PRODUCE TEST ___")
 bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
-num_acks = sys.argv[4]
+num_acks = int(sys.argv[4])
 num_partitions = int(sys.argv[5])
 linger = int(sys.argv[6])
 
@@ -26,7 +26,7 @@ with topic.get_producer(
     delivery_reports = (False if num_acks == 0 else True), 
     use_rdkafka = True,
     linger_ms = linger,
-    required_acks = num_acks,
+    required_acks = num_acks, # how to specify acks = 'all'? 
     min_queued_messages = 1000,   
     max_queued_messages = 10000000 # exception thrown if queue fills up.
 ) as producer:
