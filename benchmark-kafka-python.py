@@ -43,7 +43,7 @@ for _ in range(num_partitions):
 start_time = timeit.default_timer()
 
 if num_acks != 0:
-    print("# acks: " + num_acks)
+    print("# acks: {}".format(num_acks))
     success_count = 0
     error_count = 0
     future_count = 0
