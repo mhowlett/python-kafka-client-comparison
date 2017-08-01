@@ -6,6 +6,8 @@ import os
 from confluent_kafka import Producer, Consumer, KafkaError
 
 
+print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+
 # _____ PRODUCE TEST ______
 
 bootstrap_server = sys.argv[1]
@@ -18,8 +20,8 @@ topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
-    'queue.buffering.max.messages': 500000,
-    'linger.ms': 50,  # see ~50% performance increase when this is > 0.
+    'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
+    'linger.ms': 50,  # see ~50% performance increase when this is > 0. todo: verify varying this more has little impact.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })
@@ -41,7 +43,7 @@ if num_acks == "0":
                 producer.produce(topic_name, message)
                 break
             except BufferError:
-                producer.flush()
+                producer.poll(1)
 
 else:
     def acked(err, msg):
@@ -64,11 +66,9 @@ else:
                 # produce until buffer full, then get some delivery reports.
                 producer.poll(1)
 
-# wait for DRs for all produce calls
+# wait for DRs for all produce calls.
 # (c.f. kafka-python where flush only guarentees all messages were sent)
 producer.flush()
-
-print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
@@ -95,6 +95,7 @@ c = Consumer({'bootstrap.servers': bootstrap_server,
     'queued.min.messages': 1000000, # reflects librdkafka perf test.
     'default.topic.config': {'auto.offset.reset': 'smallest'}
 })
+# fetch.message.max.bytes (max.partition.fetch.bytes)
 
 c.subscribe([topic_name])
 

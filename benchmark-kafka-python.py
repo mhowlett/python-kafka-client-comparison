@@ -1,6 +1,7 @@
 import sys
 import timeit
 import uuid
+import os
 from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
 
@@ -18,12 +19,11 @@ topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 producer = KafkaProducer(
     bootstrap_servers = bootstrap_servers,
-    buffer_memory = 500000 * message_len,
+    buffer_memory = 500000 * message_len, # match confluent-kafka setting.
     retries = 0,
     acks = num_acks,
     linger_ms = linger,
     max_block_ms = 0,
-    # retry_backoff_ms = 100, # doesn't come intp play because retries = 0.
     # max_in_flight_requests_per_connection = 5, # c.f. confluent -> 1000000. ??
     # batch_size = 16384 # (default). Controls max number of messages in a batch.
 )
@@ -33,9 +33,10 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-# warm up
-future = producer.send(topic_name, message)
-result = future.get(timeout=60)
+# warm up.
+for _ in range(num_partitions):
+    future = producer.send(topic_name, message)
+    result = future.get(timeout=60)
 
 start_time = timeit.default_timer()
 
@@ -64,20 +65,42 @@ if num_acks != "0":
 
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
-        print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
+        print(
+            "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+                os.environ['CONFLUENT'], 
+                num_partitions,
+                message_len, 
+                success_count + error_count - num_partitions, 
+                num_acks, 
+                elapsed, 
+                num_messages/elapsed,
+                num_messages/elapsed*message_len/1048576))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
 else:
-    print("# Not waiting for DRs")
+    print("# Not waiting on futures")
     for _ in range(num_messages):
-        producer.send(topic_name, message)
+        try:
+            producer.send(topic_name, message)
+        except KafkaTimeoutError:
+            # send all messages.
+            producer.flush()
 
-    # Flush only waits until messages have been sent.
+    # Flush only waits until messages have been sent, not acked.
     producer.flush()
 
     elapsed = timeit.default_timer() - start_time
-    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
+    print(
+        "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+            os.environ['CONFLUENT'], 
+            num_partitions,
+            message_len, 
+            num_messages, 
+            num_acks, 
+            elapsed, 
+            num_messages/elapsed,
+            num_messages/elapsed*message_len/1048576))
 
 
 # _____ CONSUME TEST ______
@@ -86,7 +109,7 @@ success_count = 0
 error_count = 0
 
 consumer = KafkaConsumer(
-    bootstrap_servers = sys.argv[1], 
+    bootstrap_servers = bootstrap_servers, 
     group_id = uuid.uuid1(),
     enable_auto_commit = False,
     auto_offset_reset = 'earliest'
@@ -107,6 +130,15 @@ for msg in consumer:
 
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
-    print("Msg/s: {0:.0f}, Mb/s: {1:.2f}".format(num_messages/elapsed, num_messages/elapsed*message_len/1048576))
+    print(
+        "C, K, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+            os.environ['CONFLUENT'], 
+            num_partitions,
+            message_len, 
+            num_messages, 
+            elapsed, 
+            num_messages/elapsed, 
+            num_messages/elapsed*message_len/1048576))
+            
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
