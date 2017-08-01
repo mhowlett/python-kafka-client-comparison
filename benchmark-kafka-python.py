@@ -47,56 +47,36 @@ start_time = timeit.default_timer()
 if num_acks != 0:
     print("# acks: {}".format(num_acks))
     success_count = 0
-    error_count = 0
-    future_count = 0
-    except_count = 0
 
-    # the only way to get delivery reports seems to be via futures.
     futures = []
     for _ in range(num_messages):
-        while True:
-            try:
-                # max_block_ms is set to 0, so this will throw exception if queue full.
-                futures.append(producer.send(topic_name, message))
-                break
-            except KafkaTimeoutError:
-                except_count += 1
-                time.sleep(0.01)
+        futures.append(producer.send(topic_name, message))
 
     for i in range(future_count, len(futures)):
         f = futures[i]
         dr = f.get(60)
-        # todo: check errors.
         success_count += 1
 
     if except_count > 0:
         print("# handled exceptions whilst producing {}".format(except_count))
 
     elapsed = timeit.default_timer() - start_time
-    if error_count == 0:
-        print(
-            "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
-                os.environ['CONFLUENT'], 
-                num_partitions,
-                message_len, 
-                success_count + error_count - num_partitions, 
-                num_acks, 
-                elapsed, 
-                num_messages/elapsed,
-                num_messages/elapsed*message_len/1048576))
-    else:
-        print("# success: {}, # error: {}".format(success_count, error_count))
+    print(
+        "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+            os.environ['CONFLUENT'], 
+            num_partitions,
+            message_len, 
+            success_count, 
+            num_acks, 
+            elapsed, 
+            num_messages/elapsed,
+            num_messages/elapsed*message_len/1048576))
+
 
 else:
     print("# Not waiting on futures")
     for _ in range(num_messages):
-        try:
-            producer.send(topic_name, message)
-        except KafkaTimeoutError:
-            # send all messages.
-            producer.flush()
-
-    # Flush only waits until messages have been sent, not acked.
+        producer.send(topic_name, message)
     producer.flush()
 
     elapsed = timeit.default_timer() - start_time
