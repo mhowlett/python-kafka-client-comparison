@@ -57,10 +57,9 @@ if num_acks != 0:
             try:
                 # max_block_ms is set to 0, so this will throw exception if queue full.
                 futures.append(producer.send(topic_name, message))
+                break
             except KafkaTimeoutError:
                 except_count += 1
-                # dr = futures[future_count].get(60)
-                # future_count += 1
                 time.sleep(0.01)
 
     for i in range(future_count, len(futures)):
