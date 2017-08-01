@@ -47,6 +47,7 @@ if num_acks != 0:
     success_count = 0
     error_count = 0
     future_count = 0
+    except_count = 0
 
     # the only way to get delivery reports seems to be via futures.
     futures = []
@@ -55,15 +56,18 @@ if num_acks != 0:
             # max_block_ms is set to 0, so this will throw exception if queue full.
             futures.append(producer.send(topic_name, message))
         except KafkaTimeoutError:
-            dr = futures[future_count].get(10)
+            except_count += 1
+            dr = futures[future_count].get(60)
             future_count += 1
-            # print(future_count)
 
     for i in range(future_count, len(futures)):
         f = futures[i]
-        dr = f.get(10)
+        dr = f.get(60)
         # todo: check errors.
         success_count += 1
+
+    if except_count > 0:
+        print("# handled exceptions whilst producing {}".format(except_count))
 
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
