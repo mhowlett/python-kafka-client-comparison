@@ -12,7 +12,8 @@ num_acks = sys.argv[4]
 num_partitions = int(sys.argv[5])
 linger = int(sys.argv[6])
 
-topic_name = b"test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
+topic_name = bytearray()
+topic_name.extend(map(ord, "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)))
 
 message = bytearray()
 for i in range(message_len):
