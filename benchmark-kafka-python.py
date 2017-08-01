@@ -12,6 +12,8 @@ bootstrap_servers = sys.argv[1]
 message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
 num_acks = sys.argv[4]
+if num_acks != "all":
+    num_acks = int(num_acks)
 num_partitions = int(sys.argv[5])
 linger = int(sys.argv[6])
 
@@ -40,7 +42,7 @@ for _ in range(num_partitions):
 
 start_time = timeit.default_timer()
 
-if num_acks != "0":
+if num_acks != 0:
     print("# acks: " + num_acks)
     success_count = 0
     error_count = 0
