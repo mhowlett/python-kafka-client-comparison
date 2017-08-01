@@ -3,6 +3,7 @@ import timeit
 import time
 import os
 from pykafka import KafkaClient
+from pykafka.exceptions import ProducerQueueFullError
 
 
 bootstrap_server = sys.argv[1]
@@ -10,7 +11,6 @@ message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
 num_acks = int(sys.argv[4])
 num_partitions = int(sys.argv[5])
-linger = int(sys.argv[6])
 
 topic_name = bytes("test-topic-p{0}-r3-s{1}".format(num_partitions, message_len), 'utf-8')
 
@@ -58,8 +58,7 @@ with topic.get_producer(
             try:
                 producer.produce(message)
                 break
-            except e:
-                print(e)
+            except ProducerQueueFullError:
                 if num_acks != 0:
                     msg, err = producer.get_delivery_report(block=False)
                     dr_count += 1
