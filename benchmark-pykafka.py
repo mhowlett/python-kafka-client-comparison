@@ -1,5 +1,6 @@
 import sys
 import timeit
+import time
 import os
 from pykafka import KafkaClient
 
@@ -35,9 +36,13 @@ with topic.get_producer(
     # any benchmarking) to reduce the chance of one-off effects.
     for _ in range(num_partitions):
         producer.produce(message)
-        msg, err = producer.get_delivery_report(block=True)
-        if err is not None:
-            print("# Error occured producing warm-up message.")
+        if num_acks != 0:
+            msg, err = producer.get_delivery_report(block=True)
+            if err is not None:
+                print("# Error occured producing warm-up message.")
+
+    if num_acks == 0:
+        time.sleep(5)
 
     start_time = timeit.default_timer()
     
@@ -51,12 +56,15 @@ with topic.get_producer(
                 producer.produce(message)
                 break
             except:
-                msg, err = producer.get_delivery_report(block=True)
-                dr_count += 1
-                if err is not None:
-                    error_count += 1
+                if num_acks != 0:
+                    msg, err = producer.get_delivery_report(block=True)
+                    dr_count += 1
+                    if err is not None:
+                        error_count += 1
+                    else:
+                        success_count += 1
                 else:
-                    success_count += 1
+                    time.sleep(0.01)
     
     if num_acks != 0:
         for _ in range(dr_count, num_messages):
