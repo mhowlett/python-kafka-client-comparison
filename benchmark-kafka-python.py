@@ -52,13 +52,9 @@ if num_acks != 0:
     for _ in range(num_messages):
         futures.append(producer.send(topic_name, message))
 
-    for i in range(future_count, len(futures)):
-        f = futures[i]
+    for f in futures:
         dr = f.get(60)
         success_count += 1
-
-    if except_count > 0:
-        print("# handled exceptions whilst producing {}".format(except_count))
 
     elapsed = timeit.default_timer() - start_time
     print(
