@@ -14,8 +14,8 @@ fi
 
 confluent_version=$1
 
-#./cluster-down.sh
-#./cluster-up.sh $confluent_version 64
+./cluster-down.sh
+./cluster-up.sh $confluent_version 64
 
 run_test()
 {
@@ -23,9 +23,23 @@ run_test()
     docker exec env sh -c "$cmd"
 }
 
-run_test 64 10000 0 1 >> results.txt
-run_test 64 10000 1 1 >> results.txt
-run_test 64 10000 all 1 >> results.txt
-run_test 64 10000 0 3 >> results.txt
-run_test 64 10000 1 3 >> results.txt
-run_test 64 10000 all 3 >> results.txt
+run_test 64 10000000 0 1 # warmup
+run_test 64 10000000 0 1 >> results.txt
+run_test 64 10000000 1 1 >> results.txt
+run_test 64 10000000 all 1 >> results.txt
+run_test 64 10000000 0 3 # warmup
+run_test 64 10000000 0 3 >> results.txt
+run_test 64 10000000 1 3 >> results.txt
+run_test 64 10000000 all 3 >> results.txt
+
+./cluster-down.sh
+./cluster-up.sh $confluent_version 128
+
+run_test 128 10000000 0 1 # warmup
+run_test 128 10000000 0 1 >> results.txt
+run_test 128 10000000 1 1 >> results.txt
+run_test 128 10000000 all 1 >> results.txt
+run_test 128 10000000 0 3 # warmup
+run_test 128 10000000 0 3 >> results.txt
+run_test 128 10000000 1 3 >> results.txt
+run_test 128 10000000 all 3 >> results.txt
