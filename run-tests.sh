@@ -14,32 +14,26 @@ fi
 
 confluent_version=$1
 
-./cluster-down.sh
-./cluster-up.sh $confluent_version 64
-
 run_test()
 {
     cmd='python /src/benchmark-confluent-kafka.py $KAFKA'" $1 $2 $3 $4"
     docker exec env sh -c "$cmd"
 }
 
-run_test 64 10000000 0 1 # warmup
-run_test 64 10000000 0 1 >> results.txt
-run_test 64 10000000 1 1 >> results.txt
-run_test 64 10000000 all 1 >> results.txt
-run_test 64 10000000 0 3 # warmup
-run_test 64 10000000 0 3 >> results.txt
-run_test 64 10000000 1 3 >> results.txt
-run_test 64 10000000 all 3 >> results.txt
+run_suite()
+{
+    run_test $1 $2 0 1 # warmup
+    run_test $1 $2 0 1 >> $3
+    run_test $1 $2 1 1 >> $3
+    run_test $1 $2 all 1 >> $3
+    run_test $1 $2 0 3 # warmup
+    run_test $1 $2 0 3 >> $3
+    run_test $1 $2 1 3 >> $3
+    run_test $1 $2 all 3 >> $3
+}
 
-./cluster-down.sh
-./cluster-up.sh $confluent_version 128
-
-run_test 128 10000000 0 1 # warmup
-run_test 128 10000000 0 1 >> results.txt
-run_test 128 10000000 1 1 >> results.txt
-run_test 128 10000000 all 1 >> results.txt
-run_test 128 10000000 0 3 # warmup
-run_test 128 10000000 0 3 >> results.txt
-run_test 128 10000000 1 3 >> results.txt
-run_test 128 10000000 all 3 >> results.txt
+run_suite 64 10000000 results.csv
+run_suite 128 10000000 results.csv
+run_suite 256 10000000 results.csv
+run_suite 512 5000000 results.csv
+run_suite 1024 3000000 results.csv
