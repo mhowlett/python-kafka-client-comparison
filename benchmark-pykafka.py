@@ -9,7 +9,11 @@ from pykafka.exceptions import ProducerQueueFullError
 bootstrap_server = sys.argv[1]
 message_len = int(sys.argv[2])
 num_messages = int(sys.argv[3])
-num_acks = int(sys.argv[4])
+num_acks = 0
+if sys.argv[4] == 'all':
+    num_acks = 3
+else:
+    num_acks = int(sys.argv[4])
 num_partitions = int(sys.argv[5])
 
 topic_name = bytes("test-topic-p{0}-r3-s{1}".format(num_partitions, message_len), 'utf-8')
