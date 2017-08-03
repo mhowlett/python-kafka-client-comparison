@@ -139,3 +139,4 @@ if error_count == 0:
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
+consumer.stop()

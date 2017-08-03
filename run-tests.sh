@@ -19,6 +19,7 @@ message_count=$3
 run_test()
 {
     cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4"
+    echo $cmd
     docker exec env sh -c "$cmd"
 }
 

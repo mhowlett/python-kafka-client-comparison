@@ -1,3 +1,4 @@
+import sys
 import csv
 from collections import namedtuple
 import numpy as np
@@ -17,7 +18,7 @@ PlotKey = namedtuple(
 
 data = {}
 
-with open("results.csv", newline="") as f:
+with open(sys.argv[1], newline="") as f:
     reader = csv.reader(f)
     for vs in reader:
         if (len(vs) < 10):
@@ -137,4 +138,4 @@ def make_plot(typ=None, client=None, version=None, partitions=None, acks=None):
     plt.show()
 
 
-make_plot(typ='P', version='3.3.0', client='C')
+make_plot(typ='P', version='3.3.0', client='K')
