@@ -14,7 +14,6 @@ num_acks = sys.argv[4]
 if num_acks != "all":
     num_acks = int(num_acks)
 num_partitions = int(sys.argv[5])
-linger = int(sys.argv[6])
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
@@ -28,7 +27,7 @@ producer = KafkaProducer(
     buffer_memory = 500000 * message_len, # match confluent-kafka setting.
     retries = 0,
     acks = num_acks,
-    linger_ms = linger,
+    linger_ms = 100,
     max_block_ms = 10,
     max_in_flight_requests_per_connection = 20
     # max_in_flight_requests_per_connection = 5, # c.f. confluent -> 1000000. ??
