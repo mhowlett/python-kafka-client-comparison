@@ -1,13 +1,14 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]; then
-    echo "usage: $0 <confluent-version-number>"
+if [ "$#" -ne 2 ]; then
+    echo "usage: $0 <confluent-version-number> <message-size>"
     exit 1
 fi
 
 eval $(docker-machine env mhowlett-1)
 
 confluent_version=$1
+message_size=$2
 
 # -e KAFKA_HEAP_OPTS="-Xmx128M -Xms128M" \  - when using a micro instance.
 # -v /data/zookeeper:/var/lib/zookeeper \
@@ -53,27 +54,6 @@ create_topic()
 
 # num_partitions, replication_factor, for_message_size
 
-create_topic 1 1 64
-create_topic 1 3 64
-create_topic 3 1 64
-create_topic 3 3 64
+create_topic 1 3 $message_size
+create_topic 3 3 $message_size
 
-create_topic 1 1 128
-create_topic 1 3 128
-create_topic 3 1 128
-create_topic 3 3 128
-
-create_topic 1 1 256
-create_topic 1 3 256
-create_topic 3 1 256
-create_topic 3 3 256
-
-create_topic 1 1 512
-create_topic 1 3 512
-create_topic 3 1 512
-create_topic 3 3 512
-
-create_topic 1 1 1024
-create_topic 1 3 1024
-create_topic 3 1 1024
-create_topic 3 3 1024

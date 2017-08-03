@@ -35,7 +35,8 @@ message = bytes(message)
 success_count = 0
 error_count = 0
 
-if num_acks == "0":
+if False:
+    # number of acks = 0.
     start_time = timeit.default_timer()
     for _ in range(num_messages):
         while True:
