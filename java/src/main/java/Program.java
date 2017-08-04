@@ -8,7 +8,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.BasicConfigurator;
@@ -74,13 +73,6 @@ public class Program {
     long waitStartTime = System.currentTimeMillis();
 
     producer.close();
-
-    // while (successCount + errorCount < messageCount) {
-    //  try {
-    //    TimeUnit.MILLISECONDS.sleep(20);
-    //  }
-    //  catch (InterruptedException e) {}
-    //}
 
     final long endTime = System.currentTimeMillis();
 
