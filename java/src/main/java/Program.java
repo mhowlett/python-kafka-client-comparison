@@ -73,16 +73,19 @@ public class Program {
 
     long waitStartTime = System.currentTimeMillis();
 
-    while (successCount + errorCount < messageCount) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(20);
-      }
-      catch (InterruptedException e) {}
-    }
+    producer.close();
+
+    // while (successCount + errorCount < messageCount) {
+    //  try {
+    //    TimeUnit.MILLISECONDS.sleep(20);
+    //  }
+    //  catch (InterruptedException e) {}
+    //}
 
     final long endTime = System.currentTimeMillis();
 
-    System.out.println(String.format("# final wait time (ms): %d", endTime-waitStartTime));
+    System.out.println(String.format("# final wait time (ms): %d, success %d, error %d",
+                                     endTime-waitStartTime, successCount, errorCount));
 
     final long timeMs = (endTime - startTime);
     String version = System.getenv("CONFLUENT");

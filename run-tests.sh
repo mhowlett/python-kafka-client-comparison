@@ -19,11 +19,10 @@ message_count=$3
 run_test()
 {
     if [ "$client" = "java" ]; then
-        echo "testing java"
-        cmd = "java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" "
+        cmd="cd /src/java/; java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" $1 $2 $3 $4 100"
         docker exec java-env sh -c "$cmd"
     else
-        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 100"
+        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4"
         docker exec python-env sh -c "$cmd"
     fi
 }
