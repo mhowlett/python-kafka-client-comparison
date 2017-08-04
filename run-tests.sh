@@ -1,26 +1,27 @@
 #!/bin/bash
 
-if [ "$#" -ne 3 ]; then
-    echo "usage: $0 <confluent-version-number> <client> <message-count>"
+if [ "$#" -ne 4 ]; then
+    echo "usage: $0 <confluent-version-number> <client> <message-count> <java|python>"
     exit 1
 fi
 
 eval $(docker-machine env mhowlett-1)
 
 if [ ! "$(docker ps -a | grep env)" ]; then
-    echo "python environment must be already running"
+    echo "python or java environment must be already running"
     exit 1
 fi
 
 confluent_version=$1
 client=$2
 message_count=$3
+env_type=$4
 
 run_test()
 {
     cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4"
     echo $cmd
-    docker exec env sh -c "$cmd"
+    docker exec $(env_type)-env sh -c "$cmd"
 }
 
 run_suite()
