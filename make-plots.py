@@ -27,9 +27,6 @@ with open(sys.argv[1], newline="") as f:
         if (vs[0].startswith("#")):
             continue
 
-        if (vs[0].startswith("python")):
-            continue
-
         vs = list(map(lambda v: v.strip(), vs))
         k = DataKey(vs[0], vs[1], vs[2], vs[3], vs[4], vs[6])
         v = DataValue(vs[8], vs[9])
