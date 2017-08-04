@@ -20,11 +20,11 @@ run_test()
 {
     if [ "$client" = "java" ]; then
         echo "testing java"
-        # cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4"
-        # docker exec $(env_type)-env sh -c "$cmd"
+        cmd = "java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" "
+        docker exec java-env sh -c "$cmd"
     else
-        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4"
-        docker exec $(env_type)-env sh -c "$cmd"
+        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 100"
+        docker exec python-env sh -c "$cmd"
     fi
 }
 
