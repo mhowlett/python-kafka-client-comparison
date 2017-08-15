@@ -1,20 +1,22 @@
+import os
 import sys
 import timeit
 import time
 import uuid
-import os
 from confluent_kafka import Producer, Consumer, KafkaError
 
-
 bootstrap_server = sys.argv[1]
-message_len = int(sys.argv[2])
-num_messages = int(sys.argv[3])
-num_acks = sys.argv[4]
-num_partitions = int(sys.argv[5])
+num_messages = int(sys.argv[2])
+num_partitions = int(sys.argv[3])
+message_len = int(sys.argv[4])
+num_acks = sys.argv[5]
+compression = sys.argv[6]
+tls = sys.argv[7]
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
-print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+
+print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
 
 
 # _____ PRODUCE TEST ______
@@ -22,7 +24,7 @@ print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, 
 producer = Producer({
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
-    'linger.ms': 50,  # see ~50% performance increase when this is > 0.
+    'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
 })
@@ -75,7 +77,7 @@ producer.flush()
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
     print(
-        "P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+        "Confluent, P, {0}, {1}, {2}, {3}, {4}, -, -, {5:.1f}, {6:.0f}, {7:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
@@ -133,7 +135,7 @@ finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
         print(
-            "C, C, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+            "Confluent, C, {0}, {1}, {2}, {3}, -, -, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
                 os.environ['CONFLUENT'], 
                 num_partitions,
                 message_len, 

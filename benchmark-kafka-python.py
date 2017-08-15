@@ -6,16 +6,16 @@ import os
 from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
 
-
 bootstrap_servers = sys.argv[1]
-message_len = int(sys.argv[2])
-num_messages = int(sys.argv[3])
-num_acks = sys.argv[4]
+num_messages = int(sys.argv[2])
+num_partitions = int(sys.argv[3])
+message_len = int(sys.argv[4])
+num_acks = sys.argv[5]
 if num_acks != "all":
     num_acks = int(num_acks)
-num_partitions = int(sys.argv[5])
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
+
 
 print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
 

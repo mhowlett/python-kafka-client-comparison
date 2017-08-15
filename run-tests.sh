@@ -1,20 +1,21 @@
 #!/bin/bash
 
-if [ "$#" -ne 3 ]; then
-    echo "usage: $0 <confluent-version-number> <client> <message-count>"
+if [ "$#" -ne 4 ]; then
+    echo "usage: $0 <machine-prefix> <confluent-version-number> <client> <message-count>"
     exit 1
 fi
 
-eval $(docker-machine env mhowlett-1)
+prefix=$1
+confluent_version=$1
+client=$2
+message_count=$3
+
+eval $(docker-machine env ${prefix}-1)
 
 if [ ! "$(docker ps -a | grep env)" ]; then
     echo "python or java environment must be already running"
     exit 1
 fi
-
-confluent_version=$1
-client=$2
-message_count=$3
 
 run_test()
 {
@@ -29,18 +30,18 @@ run_test()
 
 run_test_group()
 {
-    run_test $1 $2 0 1 # warmup
-    run_test $1 $2 0 1 >> results-$client.csv
-    run_test $1 $2 1 1 >> results-$client.csv
-    run_test $1 $2 all 1 >> results-$client.csv
-    run_test $1 $2 0 3 # warmup
-    run_test $1 $2 0 3 >> results-$client.csv
-    run_test $1 $2 1 3 >> results-$client.csv
-    run_test $1 $2 all 3 >> results-$client.csv
+    run_test $1 1 $2 0 # warmup
+    run_test $1 1 $2 0 >> results-$client.csv
+    run_test $1 1 $2 1 >> results-$client.csv
+    run_test $1 1 $2 all >> results-$client.csv
+    run_test $1 3 $2 0 # warmup
+    run_test $1 3 $2 0 >> results-$client.csv
+    run_test $1 3 $2 1 >> results-$client.csv
+    run_test $1 3 $2 all >> results-$client.csv
 }
 
-run_test_group 64 $message_count
-run_test_group 128 $message_count
-run_test_group 256 $message_count
-run_test_group 512 $(( $message_count / 2 ))
-run_test_group 1024 $(( $message_count / 4 ))
+run_test_group $message_count 64
+run_test_group $message_count 128
+run_test_group $message_count 256
+run_test_group $(( $message_count / 2 )) 512
+run_test_group $(( $message_count / 4 )) 1024

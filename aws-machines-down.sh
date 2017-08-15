@@ -1,11 +1,18 @@
 #!/bin/bash
 
-docker-machine kill mhowlett-1
-docker-machine kill mhowlett-2
-docker-machine kill mhowlett-3
-docker-machine kill mhowlett-4
+if [ "$#" -ne 1 ]; then
+    echo "usage: $0 <machine-prefix>"
+    exit 1
+fi
 
-docker-machine rm -y mhowlett-1
-docker-machine rm -y mhowlett-2
-docker-machine rm -y mhowlett-3
-docker-machine rm -y mhowlett-4
+prefix=$1
+
+docker-machine kill ${prefix}-1
+docker-machine kill ${prefix}-2
+docker-machine kill ${prefix}-3
+docker-machine kill ${prefix}-4
+
+docker-machine rm -y ${prefix}-1
+docker-machine rm -y ${prefix}-2
+docker-machine rm -y ${prefix}-3
+docker-machine rm -y ${prefix}-4

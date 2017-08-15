@@ -1,29 +1,34 @@
 #!/bin/bash
 
-eval $(docker-machine env mhowlett-1)
+if [ "$#" -ne 1 ]; then
+    echo "usage: $0 <machine-prefix>"
+    exit 1
+fi
+
+eval $(docker-machine env $1-1)
 
 docker kill zookeeper
 docker rm zookeeper
 docker volume prune -f
-docker-machine ssh mhowlett-1 sudo umount /mnt
+docker-machine ssh $1-1 sudo umount /mnt
 
-eval $(docker-machine env mhowlett-2)
-
-docker kill kafka
-docker rm kafka
-docker volume prune -f
-docker-machine ssh mhowlett-2 sudo umount /mnt
-
-eval $(docker-machine env mhowlett-3)
+eval $(docker-machine env $1-2)
 
 docker kill kafka
 docker rm kafka
 docker volume prune -f
-docker-machine ssh mhowlett-3 sudo umount /mnt
+docker-machine ssh $1-2 sudo umount /mnt
 
-eval $(docker-machine env mhowlett-4)
+eval $(docker-machine env $1-3)
 
 docker kill kafka
 docker rm kafka
 docker volume prune -f
-docker-machine ssh mhowlett-4 sudo umount /mnt
+docker-machine ssh $1-3 sudo umount /mnt
+
+eval $(docker-machine env $1-4)
+
+docker kill kafka
+docker rm kafka
+docker volume prune -f
+docker-machine ssh $1-4 sudo umount /mnt
