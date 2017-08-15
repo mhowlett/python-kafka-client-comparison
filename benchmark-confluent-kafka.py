@@ -10,8 +10,8 @@ num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
-compression = sys.argv[6]
-tls = sys.argv[7]
+#compression = sys.argv[6]
+#tls = sys.argv[7]
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
