@@ -10,7 +10,7 @@ num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
-#compression = sys.argv[6]
+compression = sys.argv[6]
 #tls = sys.argv[7]
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
@@ -27,7 +27,12 @@ producer = Producer({
     'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
+    'compression.codec': compression
 })
+
+url_cnt = 0
+with open('urls.10K.txt') as f:
+    urls = f.readlines()
 
 message = bytearray()
 for i in range(message_len):
@@ -64,7 +69,13 @@ else:
         while True:
             try:
                 # round-robin to all partitions.
-                producer.produce(topic_name, message, callback=acked)
+                if compression == "none":
+                    producer.produce(topic_name, message, callback=acked)
+                else:
+                    url_cnt += 1
+                    if url_cnt >= len(urls):
+                        url_cnt = 0
+                    producer.produce(topic_name, urls[url_cnt], callback=acked)
                 break
             except BufferError:
                 # produce until buffer full, then get some delivery reports.
@@ -77,12 +88,13 @@ producer.flush()
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
     print(
-        "Confluent, P, {0}, {1}, {2}, {3}, {4}, -, -, {5:.1f}, {6:.0f}, {7:.2f}".format(
+        "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, -, {6:.1f}, {7:.0f}, {8:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
             success_count + error_count - num_partitions, 
             num_acks, 
+            compression,
             elapsed, 
             num_messages/elapsed,
             num_messages/elapsed*message_len/1048576))
