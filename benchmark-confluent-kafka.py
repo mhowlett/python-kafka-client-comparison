@@ -36,6 +36,7 @@ if security == 'SSL':
     producerSettings["security.protocol"] = "SSL"
     producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
 
+print(producerSettings)
 producer = Producer(producerSettings)
 
 url_cnt = 0
