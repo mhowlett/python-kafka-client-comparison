@@ -155,9 +155,9 @@ finally:
                 num_partitions,
                 message_len, 
                 num_messages, 
-                elapsed, 
                 compression,
                 security,
+                elapsed,
                 num_messages/elapsed, 
                 num_messages/elapsed*message_len/1048576))
     else:
