@@ -107,6 +107,7 @@ start_broker()
         -e KAFKA_SSL_KEY_CREDENTIALS=ssl_creds \
         -e KAFKA_SSL_TRUSTSTORE_FILENAME=server.truststore.jks \
         -e KAFKA_SSL_TRUSTSTORE_CREDENTIALS=ssl_creds \
+        -e KAFKA_SSL_CLIENT_AUTH=none \
         -e KAFKA_BROKER_ID=$1 \
         confluentinc/cp-kafka:${confluent_version}
 }

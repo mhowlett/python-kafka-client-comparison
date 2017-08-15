@@ -41,12 +41,17 @@ run_test_group()
     run_test $1 1 $2 all none none >> results-$client.csv 
 }
 
-run_test_group $message_count 64
+run_test $message_count 3 128 all none SSL
+
+#run_test_group $message_count 64
 #run_test_group $message_count 128
 #run_test_group $message_count 256
 #run_test_group $(( $message_count / 2 )) 512
 #run_test_group $(( $message_count / 4 )) 1024
 
+run_test $message_count 1 0 all gzip none
 run_test $message_count 1 0 all gzip none >> results-$client.csv
+run_test $message_count 1 0 all snappy none
 run_test $message_count 1 0 all snappy none >> results-$client.csv
+run_test $message_count 1 0 all lz4 none
 run_test $message_count 1 0 all lz4 none >> results-$client.csv
