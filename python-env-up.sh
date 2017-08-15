@@ -23,6 +23,7 @@ docker run \
   --network=host \
   --name=python-env \
   --rm \
+  -v /tmp:/tmp \
   -v /git/python-kafka-client-comparison:/src \
   -e ZOOKEEPER=$(docker-machine ip ${prefix}-1) \
   -e KAFKA=$(docker-machine ip ${prefix}-2) \

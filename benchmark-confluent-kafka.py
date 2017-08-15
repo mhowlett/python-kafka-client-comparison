@@ -23,14 +23,20 @@ print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 
 # _____ PRODUCE TEST ______
 
-producer = Producer({
+producerSettings = {
     'bootstrap.servers': bootstrap_server,
     'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
     'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
     'compression.codec': compression
-})
+}
+
+if security == 'SSL':
+    producerSettings["security.protocol"] = "SSL"
+    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+
+producer = Producer(producerSettings)
 
 url_cnt = 0
 with open('/src/urls.10K.txt') as f:
@@ -107,14 +113,21 @@ else:
 
 # _____ CONSUME TEST ______
 
-c = Consumer({'bootstrap.servers': bootstrap_server,
+consumerSettings = {
+    'bootstrap.servers': bootstrap_server,
     'group.id': uuid.uuid1(),
     'enable.auto.commit': False,
     'session.timeout.ms': 6000,
     'queued.min.messages': 1000000, # reflects librdkafka perf test.
     'default.topic.config': {'auto.offset.reset': 'smallest'}
-})
-# fetch.message.max.bytes (max.partition.fetch.bytes)
+    # fetch.message.max.bytes (max.partition.fetch.bytes)
+}
+
+if security == 'SSL':
+    producerSettings["security.protocol"] = "SSL"
+    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+
+c = Consumer(consumerSettings)
 
 c.subscribe([topic_name])
 

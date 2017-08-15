@@ -30,22 +30,22 @@ run_test()
 
 run_test_group()
 {
+    run_test $1 3 $2 0 none none # warmup
+    run_test $1 3 $2 all none SSL >> results-$client.csv
+    run_test $1 3 $2 0 none none >> results-$client.csv
+    run_test $1 3 $2 1 none none >> results-$client.csv
+    run_test $1 3 $2 all none none >> results-$client.csv
     run_test $1 1 $2 0 none none # warmup
     run_test $1 1 $2 0 none none >> results-$client.csv
     run_test $1 1 $2 1 none none >> results-$client.csv
     run_test $1 1 $2 all none none >> results-$client.csv 
-    run_test $1 3 $2 0 none none # warmup
-    run_test $1 3 $2 0 none none >> results-$client.csv
-    run_test $1 3 $2 1 none none >> results-$client.csv
-    run_test $1 3 $2 all none none >> results-$client.csv
-    run_test $1 3 $2 all none SSL >> results-$client.csv
 }
 
 run_test_group $message_count 64
-run_test_group $message_count 128
-run_test_group $message_count 256
-run_test_group $(( $message_count / 2 )) 512
-run_test_group $(( $message_count / 4 )) 1024
+#run_test_group $message_count 128
+#run_test_group $message_count 256
+#run_test_group $(( $message_count / 2 )) 512
+#run_test_group $(( $message_count / 4 )) 1024
 
 run_test $message_count 1 0 all gzip none >> results-$client.csv
 run_test $message_count 1 0 all snappy none >> results-$client.csv
