@@ -5,13 +5,15 @@ import time
 import uuid
 from confluent_kafka import Producer, Consumer, KafkaError
 
-bootstrap_server = sys.argv[1]
+bootstrap_server = sys.argv[1] + ":29092"
 num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
 compression = sys.argv[6]
-#tls = sys.argv[7]
+security = sys.argv[7]
+if security == 'SSL':
+    bootstrap_server = sys.argv[1] + ":29093"
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
@@ -88,13 +90,14 @@ producer.flush()
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
     print(
-        "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, -, {6:.1f}, {7:.0f}, {8:.2f}".format(
+        "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
             success_count + error_count - num_partitions, 
             num_acks, 
             compression,
+            security,
             elapsed, 
             num_messages/elapsed,
             num_messages/elapsed*message_len/1048576))
@@ -147,12 +150,14 @@ finally:
     elapsed = timeit.default_timer() - start_time
     if error_count == 0:
         print(
-            "Confluent, C, {0}, {1}, {2}, {3}, -, -, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+            "Confluent, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}".format(
                 os.environ['CONFLUENT'], 
                 num_partitions,
                 message_len, 
                 num_messages, 
                 elapsed, 
+                compression,
+                security,
                 num_messages/elapsed, 
                 num_messages/elapsed*message_len/1048576))
     else:

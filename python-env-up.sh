@@ -24,8 +24,8 @@ docker run \
   --name=python-env \
   --rm \
   -v /git/python-kafka-client-comparison:/src \
-  -e ZOOKEEPER=$(docker-machine ip ${prefix}-1):32181 \
-  -e KAFKA=$(docker-machine ip ${prefix}-2):29092 \
+  -e ZOOKEEPER=$(docker-machine ip ${prefix}-1) \
+  -e KAFKA=$(docker-machine ip ${prefix}-2) \
   -e CONFLUENT=${confluent_version} \
   python:3.6 \
   /src/python-bootstrap.sh
