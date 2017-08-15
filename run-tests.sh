@@ -6,9 +6,9 @@ if [ "$#" -ne 4 ]; then
 fi
 
 prefix=$1
-confluent_version=$1
-client=$2
-message_count=$3
+confluent_version=$2
+client=$3
+message_count=$4
 
 eval $(docker-machine env ${prefix}-1)
 
