@@ -96,6 +96,7 @@ start_broker()
     docker run -d \
         --net=host \
         --name=kafka \
+        -p 29093 -p 29092 \
         -v /mnt/kafka/data:/var/lib/kafka/data:cached \
         -v /tmp:/etc/kafka/secrets \
         -e KAFKA_ZOOKEEPER_CONNECT=$(docker-machine ip ${prefix}-1):32181 \
