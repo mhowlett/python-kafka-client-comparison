@@ -33,7 +33,7 @@ producer = Producer({
 })
 
 url_cnt = 0
-with open('/git/python-kafka-client-comparison/urls.10K.txt') as f:
+with open('/src/urls.10K.txt') as f:
     urls = f.readlines()
 
 message = bytearray()
