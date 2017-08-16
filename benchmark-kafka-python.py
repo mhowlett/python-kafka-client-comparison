@@ -29,7 +29,7 @@ if security == 'none':
     security = 'PLAINTEXT'
     ca_file = '/tmp/ca-root.crt'
 
-print("# topic: {}, message_len: {}".format(topic_name, message_len))
+print("# broker: {}, topic: {}, message_len: {}".format(bootstrap_servers, topic_name, message_len))
 print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
 
 

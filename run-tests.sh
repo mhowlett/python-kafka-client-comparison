@@ -41,9 +41,9 @@ run_test_group()
     # run_test $1 3 $2 all none SSL >> results-$client.csv
 }
 
-# run_test $message_count 3 128 all none SSL
+run_test $message_count 3 128 all none SSL
 
-run_test_group $message_count 64
+#run_test_group $message_count 64
 #run_test_group $(( $message_count / 2 )) 128
 #run_test_group $(( $message_count / 4 )) 256
 #run_test_group $(( $message_count / 8 )) 512
