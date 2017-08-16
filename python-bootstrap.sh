@@ -16,7 +16,7 @@ pip install pykafka
 apt-get update
 apt-get install -y emacs
 apt-get install -y less
-apt-get install -y wamerican
+apt-get install libsnappy-dev
 
 cd /src
 bash

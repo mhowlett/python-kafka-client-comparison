@@ -1,4 +1,6 @@
 kafka-python
+python-snappy
+lz4
 confluent-kafka
 pykafka
 matplotlib

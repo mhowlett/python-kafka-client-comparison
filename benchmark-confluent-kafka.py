@@ -20,6 +20,7 @@ if compression == 'none':
 else:
     topic_name = "test-topic-{0}".format(compression)
 
+print("# topic: {}".format(topic_name))
 print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
 
 
