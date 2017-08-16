@@ -45,7 +45,7 @@ producer = KafkaProducer(
     max_in_flight_requests_per_connection = 20,
     security_protocol = security,
     ssl_cafile = ca_file,
-    compression_type = compression
+    # compression_type = compression
     # max_in_flight_requests_per_connection = 5, # c.f. confluent -> 1000000. ??
     # batch_size = 16384 # (default). Controls max number of messages in a batch.
 )
