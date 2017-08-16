@@ -40,9 +40,13 @@ print(producerSettings)
 producer = Producer(producerSettings)
 
 url_cnt = 0
-with open('./urls.10K.txt') as f:
-    urls = f.readlines()
-
+try:
+    with open('/src/urls.10K.txt') as f:
+        urls = f.readlines()
+except:
+    with open('./urls.10K.txt') as f:
+        urls = f.readlines()
+        
 message = bytearray()
 for i in range(message_len):
     message.extend([48 + i%10])
