@@ -23,7 +23,7 @@ else:
 
 security = sys.argv[7]
 if security == 'SSL':
-    bootstrap_server = sys.argv[1] + ":29097"
+    bootstrap_servers = sys.argv[1] + ":29097"
 ca_file = None
 if security == 'none':
     security = 'PLAINTEXT'
