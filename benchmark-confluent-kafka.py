@@ -13,7 +13,7 @@ num_acks = sys.argv[5]
 compression = sys.argv[6]
 security = sys.argv[7]
 if security == 'SSL':
-    bootstrap_server = sys.argv[1] + ":29093"
+    bootstrap_server = sys.argv[1] + ":29097"
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
@@ -40,7 +40,7 @@ print(producerSettings)
 producer = Producer(producerSettings)
 
 url_cnt = 0
-with open('/src/urls.10K.txt') as f:
+with open('./urls.10K.txt') as f:
     urls = f.readlines()
 
 message = bytearray()
