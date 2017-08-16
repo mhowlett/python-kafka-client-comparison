@@ -6,18 +6,24 @@ import os
 from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
 
-bootstrap_servers = sys.argv[1]
+bootstrap_servers = sys.argv[1] + ":29092"
 num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
 if num_acks != "all":
     num_acks = int(num_acks)
+compression = sys.argv[6]
+security = sys.argv[7]
+if security == 'SSL':
+    bootstrap_server = sys.argv[1] + ":29097"
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
 
-print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
+
+# print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
 
 
 # _____ PRODUCE TEST ______
@@ -59,12 +65,14 @@ if num_acks != 0:
 
     elapsed = timeit.default_timer() - start_time
     print(
-        "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+        "KafkaPython, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
             success_count, 
             num_acks, 
+            compression,
+            security,
             elapsed, 
             num_messages/elapsed,
             num_messages/elapsed*message_len/1048576))
@@ -76,12 +84,14 @@ else:
 
     elapsed = timeit.default_timer() - start_time
     print(
-        "P, K, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+        "KafkaPython, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
             num_messages, 
             num_acks, 
+            compression,
+            security,
             elapsed, 
             num_messages/elapsed,
             num_messages/elapsed*message_len/1048576))
@@ -115,11 +125,13 @@ for msg in consumer:
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
     print(
-        "C, K, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+        "KafkaPython, C, {0}, {1}, {2}, {3}, -, {5}, {6}, {4:.1f}, {5:.0f}, {6:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 
             num_messages, 
+            compression,
+            security,
             elapsed, 
             num_messages/elapsed, 
             num_messages/elapsed*message_len/1048576))

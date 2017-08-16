@@ -36,7 +36,7 @@ if security == 'SSL':
     producerSettings["security.protocol"] = "SSL"
     producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
 
-print(producerSettings)
+# print(producerSettings)
 producer = Producer(producerSettings)
 
 url_cnt = 0
@@ -54,6 +54,8 @@ message = bytes(message)
 
 success_count = 0
 error_count = 0
+
+total_size = 0
 
 if False:
     # number of acks = 0.
@@ -88,6 +90,7 @@ else:
                     url_cnt += 1
                     if url_cnt >= len(urls):
                         url_cnt = 0
+                    total_size += len(urls[url_cnt]) # what is the cost of this c.f. produce?
                     producer.produce(topic_name, urls[url_cnt], callback=acked)
                 break
             except BufferError:
@@ -99,6 +102,11 @@ else:
 producer.flush()
 
 elapsed = timeit.default_timer() - start_time
+
+mb_per_s = num_messages/elapsed*message_len/1048576
+if compression != 'none':
+    mb_per_s = total_size/elapsed/1048576
+
 if error_count == 0:
     print(
         "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
@@ -111,7 +119,7 @@ if error_count == 0:
             security,
             elapsed, 
             num_messages/elapsed,
-            num_messages/elapsed*message_len/1048576))
+            mb_per_s))
 else:
     print("# success: {}, # error: {}".format(success_count, error_count))
 
@@ -145,6 +153,8 @@ if msg is None or msg.error():
 
 start_time = timeit.default_timer()
 
+total_size = 0
+
 try:
     while True:
         msg = c.poll(0.1)
@@ -153,6 +163,8 @@ try:
             continue
         elif not msg.error():
             success_count += 1
+            if compression != 'none':
+                total_size += len(msg.value())
         elif msg.error().code() == KafkaError._PARTITION_EOF:
             print('End of partition reached')
         else:
@@ -166,6 +178,11 @@ except KeyboardInterrupt:
 
 finally:
     elapsed = timeit.default_timer() - start_time
+
+    mb_per_s = num_messages/elapsed*message_len/1048576
+    if compression != 'none':
+        mb_per_s = total_size/elapsed/1048576
+
     if error_count == 0:
         print(
             "Confluent, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}".format(
@@ -177,7 +194,7 @@ finally:
                 security,
                 elapsed,
                 num_messages/elapsed, 
-                num_messages/elapsed*message_len/1048576))
+                mb_per_s))
     else:
         print("# success: {}, # error: {}".format(success_count, error_count))
 
