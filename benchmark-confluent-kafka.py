@@ -12,8 +12,8 @@ message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
 compression = sys.argv[6]
 security = sys.argv[7]
-#if security == 'SSL':
-#    bootstrap_server = sys.argv[1] + ":29097"
+if security == 'SSL':
+    bootstrap_server = sys.argv[1] + ":29097"
 
 topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
 
@@ -32,9 +32,9 @@ producerSettings = {
     'compression.codec': compression
 }
 
-if security == 'SSL':
-    producerSettings["security.protocol"] = "SSL"
-    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+#if security == 'SSL':
+#    producerSettings["security.protocol"] = "SSL"
+#    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
 
 print(producerSettings)
 producer = Producer(producerSettings)
