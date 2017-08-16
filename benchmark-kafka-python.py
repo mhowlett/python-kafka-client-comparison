@@ -125,7 +125,7 @@ for msg in consumer:
 elapsed = timeit.default_timer() - start_time
 if error_count == 0:
     print(
-        "KafkaPython, C, {0}, {1}, {2}, {3}, -, {5}, {6}, {4:.1f}, {5:.0f}, {6:.2f}".format(
+        "KafkaPython, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
             message_len, 

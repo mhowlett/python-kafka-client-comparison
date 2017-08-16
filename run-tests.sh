@@ -37,8 +37,7 @@ run_test_group()
     run_test $1 1 $2 0 none none # warmup
     run_test $1 1 $2 0 none none >> results-$client.csv
     run_test $1 1 $2 1 none none >> results-$client.csv
-    run_test $1 1 $2 all none none >> results-$client.csv 
-    
+    run_test $1 1 $2 all none none >> results-$client.csv     
     # run_test $1 3 $2 all none SSL >> results-$client.csv
 }
 

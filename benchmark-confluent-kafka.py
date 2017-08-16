@@ -107,12 +107,16 @@ mb_per_s = num_messages/elapsed*message_len/1048576
 if compression != 'none':
     mb_per_s = total_size/elapsed/1048576
 
+size = message_len
+if compression != 'none':
+    size = total_size/num_messages
+
 if error_count == 0:
     print(
         "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
             os.environ['CONFLUENT'], 
             num_partitions,
-            message_len, 
+            size, 
             success_count + error_count - num_partitions, 
             num_acks, 
             compression,
@@ -183,12 +187,16 @@ finally:
     if compression != 'none':
         mb_per_s = total_size/elapsed/1048576
 
+    size = message_len
+    if compression != 'none':
+        size = total_size/num_messages
+
     if error_count == 0:
         print(
             "Confluent, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}".format(
                 os.environ['CONFLUENT'], 
                 num_partitions,
-                message_len, 
+                size, 
                 num_messages, 
                 compression,
                 security,
