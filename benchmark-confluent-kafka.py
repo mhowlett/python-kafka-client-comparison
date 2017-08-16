@@ -33,9 +33,9 @@ producerSettings = {
     'debug': 'all'
 }
 
-#if security == 'SSL':
-#    producerSettings["security.protocol"] = "SSL"
-#    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+if security == 'SSL':
+    producerSettings["security.protocol"] = "SSL"
+    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
 
 print(producerSettings)
 producer = Producer(producerSettings)
