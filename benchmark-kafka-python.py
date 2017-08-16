@@ -37,7 +37,7 @@ print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 
 producer = KafkaProducer(
     bootstrap_servers = bootstrap_servers,
-    buffer_memory = 500000 * message_len, # match confluent-kafka setting.
+    buffer_memory = 500000 * 64, # match confluent-kafka setting.
     retries = 0,
     acks = num_acks,
     linger_ms = 100,
