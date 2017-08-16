@@ -29,8 +29,7 @@ producerSettings = {
     'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
     'message.send.max.retries': 0,
     'acks': num_acks,
-    'compression.codec': compression,
-    'debug': 'all'
+    'compression.codec': compression
 }
 
 if security == 'SSL':
