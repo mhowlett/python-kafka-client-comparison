@@ -15,8 +15,10 @@ security = sys.argv[7]
 if security == 'SSL':
     bootstrap_server = sys.argv[1] + ":29097"
 
-topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
-
+if compression == 'none':
+    topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
+else:
+    topic_name = "test-topic-{0}".format(compression)
 
 print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
 
