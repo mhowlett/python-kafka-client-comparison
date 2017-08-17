@@ -126,7 +126,9 @@ consumer = KafkaConsumer(
     bootstrap_servers = bootstrap_servers, 
     group_id = uuid.uuid1(),
     enable_auto_commit = False,
-    auto_offset_reset = 'earliest'
+    auto_offset_reset = 'earliest',
+    security_protocol = security,
+    ssl_cafile = ca_file,
 )
 consumer.subscribe([topic_name])
 
