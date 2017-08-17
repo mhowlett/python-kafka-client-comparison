@@ -18,6 +18,9 @@ fi
 docker-machine ssh ${prefix}-1 \
     "cd /; sudo mkdir git; sudo chmod a+rwx git; cd git; git clone https://github.com/mhowlett/python-kafka-client-comparison.git;"
 
+docker-machine ssh ${prefix}-1 \
+    "cp /git/python-kafka-client-comparison/urls.10K.txt /tmp/"
+
 docker run \
   -t -d \
   --network=host \

@@ -42,13 +42,8 @@ if security == 'SSL':
 # print(producerSettings)
 producer = Producer(producerSettings)
 
-url_cnt = 0
-try:
-    with open('/src/urls.10K.txt') as f:
-        urls = f.readlines()
-except:
-    with open('./urls.10K.txt') as f:
-        urls = f.readlines()
+with open('/tmp/urls.10K.txt') as f:
+    urls = f.readlines()
 
 message = bytearray()
 for i in range(message_len):
@@ -57,48 +52,35 @@ message = bytes(message)
 
 success_count = 0
 error_count = 0
-
+url_cnt = 0
 total_size = 0
 
-if False:
-    # number of acks = 0.
-    start_time = timeit.default_timer()
-    for _ in range(num_messages):
-        while True:
-            try:
-                # round-robin to all partitions - ?
-                producer.produce(topic_name, message)
-                break
-            except BufferError:
-                producer.poll(1)
+def acked(err, msg):
+    global success_count, error_count, start_time
+    if err is None:
+        if success_count == num_partitions:
+            # warmed up.
+            start_time = timeit.default_timer()
+        success_count += 1
+    else:
+        error_count += 1
 
-else:
-    def acked(err, msg):
-        global success_count, error_count, start_time
-        if err is None:
-            if success_count == num_partitions:
-                # warmed up.
-                start_time = timeit.default_timer()
-            success_count += 1
-        else:
-            error_count += 1
-
-    for _ in range(num_messages + num_partitions):
-        while True:
-            try:
-                # round-robin to all partitions.
-                if compression == "none":
-                    producer.produce(topic_name, message, callback=acked)
-                else:
-                    url_cnt += 1
-                    if url_cnt >= len(urls):
-                        url_cnt = 0
-                    total_size += len(urls[url_cnt]) # what is the cost of this c.f. produce?
-                    producer.produce(topic_name, urls[url_cnt], callback=acked)
-                break
-            except BufferError:
-                # produce until buffer full, then get some delivery reports.
-                producer.poll(1)
+for _ in range(num_messages + num_partitions):
+    while True:
+        try:
+            # round-robin to all partitions.
+            if compression == "none":
+                producer.produce(topic_name, message, callback=acked)
+            else:
+                url_cnt += 1
+                if url_cnt >= len(urls):
+                    url_cnt = 0
+                total_size += len(urls[url_cnt]) # what is the cost of this c.f. produce?
+                producer.produce(topic_name, urls[url_cnt], callback=acked)
+            break
+        except BufferError:
+            # produce until buffer full, then get some delivery reports.
+            producer.poll(1)
 
 # wait for DRs for all produce calls.
 # (c.f. kafka-python where flush only guarentees all messages were sent)

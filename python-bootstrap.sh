@@ -21,6 +21,9 @@ apt-get install -y emacs
 apt-get install -y less
 apt-get install -y libsnappy-dev
 
+pip install lz4
+pip install python-snappy
+
 pip install kafka-python
 pip install confluent-kafka
 pip install pykafka
