@@ -2,6 +2,8 @@
 
 cd /tmp
 wget -qO - http://packages.confluent.io/deb/3.3/archive.key | apt-key add -
+apt-get update
+apt-get install -y software-properties-common python-software-properties
 add-apt-repository "deb [arch=amd64] http://packages.confluent.io/deb/3.3 stable main"
 apt-get update
 apt-get install -y librdkafka-dev
