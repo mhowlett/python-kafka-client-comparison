@@ -28,11 +28,11 @@ print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 
 producerSettings = {
     'bootstrap.servers': bootstrap_server,
-    'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
-    'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
-    'message.send.max.retries': 0,
-    'acks': num_acks,
-    'compression.codec': compression
+    # 'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
+    # 'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
+    # 'message.send.max.retries': 0,
+    # 'acks': num_acks,
+    # 'compression.codec': compression
 }
 
 if security == 'SSL':
@@ -140,7 +140,6 @@ consumerSettings = {
     'session.timeout.ms': 6000,
     'queued.min.messages': 1000000, # reflects librdkafka perf test.
     'default.topic.config': {'auto.offset.reset': 'smallest'}
-    # fetch.message.max.bytes (max.partition.fetch.bytes)
 }
 
 if security == 'SSL':
