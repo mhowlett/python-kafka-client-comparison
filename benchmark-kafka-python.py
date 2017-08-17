@@ -22,12 +22,12 @@ else:
     topic_name = "test-topic-{0}".format(compression)
 
 security = sys.argv[7]
+ca_file = None
 if security == 'SSL':
     bootstrap_servers = sys.argv[1] + ":29097"
-ca_file = None
+    ca_file = '/tmp/ca-root.crt'
 if security == 'none':
     security = 'PLAINTEXT'
-    ca_file = '/tmp/ca-root.crt'
 
 print("# broker: {}, topic: {}, message_len: {}, security: {}".format(bootstrap_servers, topic_name, message_len, security))
 print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
