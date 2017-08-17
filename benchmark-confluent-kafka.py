@@ -143,8 +143,8 @@ consumerSettings = {
 }
 
 if security == 'SSL':
-    producerSettings["security.protocol"] = "SSL"
-    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+    consumerSettings["security.protocol"] = "SSL"
+    consumerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
 
 c = Consumer(consumerSettings)
 
