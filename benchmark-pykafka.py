@@ -37,9 +37,9 @@ if security == 'SSL':
 
 
 if compression == 'none':
-    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len))
+    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
 else:
-    topic_name = bytes('test-topic-{0}'.format(compression))
+    topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
 
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')

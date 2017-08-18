@@ -161,18 +161,16 @@ size = message_len
 if compression != 'none':
     size = total_size/num_messages
 
-if error_count == 0:
-    print(
-        'KafkaPython, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}'.format(
-            os.environ['CONFLUENT'], 
-            num_partitions,
-            size, 
-            num_messages, 
-            compression,
-            security,
-            elapsed, 
-            num_messages/elapsed, 
-            mb_per_s))
+print(
+    'KafkaPython, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}'.format(
+        os.environ['CONFLUENT'], 
+        num_partitions,
+        size, 
+        num_messages, 
+        compression,
+        security,
+        elapsed, 
+        num_messages/elapsed, 
+        mb_per_s))
             
-else:
-    print('# success: {}, # error: {}'.format(success_count, error_count))
+print('# success: {}, # error: {}'.format(success_count, error_count))
