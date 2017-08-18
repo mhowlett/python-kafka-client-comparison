@@ -39,7 +39,6 @@ if security == 'SSL':
     producerSettings['security.protocol'] = 'SSL'
     producerSettings['ssl.ca.location'] = '/tmp/ca-root.crt'
 
-# print(producerSettings)
 producer = Producer(producerSettings)
 
 with open('/tmp/urls.10K.txt') as f:
@@ -72,11 +71,11 @@ for _ in range(num_messages + num_partitions):
             if compression == 'none':
                 producer.produce(topic_name, message, callback=acked)
             else:
+                producer.produce(topic_name, urls[url_cnt], callback=acked)
+                total_size += len(urls[url_cnt]) # O(1)
                 url_cnt += 1
                 if url_cnt >= len(urls):
                     url_cnt = 0
-                total_size += len(urls[url_cnt]) # what is the cost of this c.f. produce?
-                producer.produce(topic_name, urls[url_cnt], callback=acked)
             break
         except BufferError:
             # produce until buffer full, then get some delivery reports.
@@ -134,14 +133,13 @@ c.subscribe([topic_name])
 
 success_count = 0
 error_count = 0
+total_size = 0
 
 msg = c.poll(10)
 if msg is None or msg.error():
     print('error reading first message')
 
 start_time = timeit.default_timer()
-
-total_size = 0
 
 try:
     while True:
@@ -181,11 +179,11 @@ finally:
                 os.environ['CONFLUENT'], 
                 num_partitions,
                 size, 
-                num_messages, 
+                num_messages,
                 compression,
                 security,
                 elapsed,
-                num_messages/elapsed, 
+                num_messages/elapsed,
                 mb_per_s))
     else:
         print('# success: {}, # error: {}'.format(success_count, error_count))

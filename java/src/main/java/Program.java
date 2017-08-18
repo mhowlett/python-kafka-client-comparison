@@ -83,13 +83,13 @@ public class Program {
     String version = System.getenv("CONFLUENT");
 
     System.out.println(
+        "Java, " +
         "P, " +
-        "J, " +
         version + ", " +
         partitionCount + ", " +
         messageLength + ", " +
         messageCount + ", " +
-        acks + ", " +
+        acks + ", none, none, " +
         String.format("%.1f", ((double)timeMs / 1000.0)) + ", " +
         String.format("%.0f", ((double)messageCount / ((double)timeMs/1000.0))) + ", " +
         String.format("%.2f", ((double)messageCount / ((double)timeMs/1000.0)) * messageLength /
@@ -144,13 +144,13 @@ public class Program {
     String version = System.getenv("CONFLUENT");
 
     System.out.println(
+        "Java, " +
         "C, " +
-        "J, " +
         version + ", " +
         partitionCount + ", " +
         messageLength + ", " +
         messageCount + ", " +
-        "-, " +
+        "-, none, none, " +
         String.format("%.1f", ((double)timeMs / 1000.0)) + ", " +
         String.format("%.0f", ((double)messageCount / ((double)timeMs/1000.0))) + ", " +
         String.format("%.2f", ((double)messageCount / ((double)timeMs/1000.0)) * messageLength /
@@ -161,14 +161,16 @@ public class Program {
   public static void main(String[] args) {
 
     String bootstrapServer = args[0];
-    int messageLength = Integer.parseInt(args[1]);
-    int messageCount = Integer.parseInt(args[2]);
-    String numAcks = args[3];
-    int partitionCount = Integer.parseInt(args[4]);
-    int linger = Integer.parseInt(args[5]);
+    int messageCount = Integer.parseInt(args[1]);
+    int partitionCount = Integer.parseInt(args[2]);
+    int messageLength = Integer.parseInt(args[3]);
+    String numAcks = args[4];
+    String compression = args[5]; // unused.
+    String security = args[6]; // unused.
+    int linger = Integer.parseInt(args[7]);
 
     System.out.println(
-        "# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s"
+        "# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s"
     );
 
     Produce(

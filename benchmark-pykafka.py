@@ -7,6 +7,8 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 
+rdkafka = False
+
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
@@ -35,9 +37,9 @@ if security == 'SSL':
 
 
 if compression == 'none':
-    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
+    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len))
 else:
-    topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
+    topic_name = bytes('test-topic-{0}'.format(compression))
 
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
@@ -53,25 +55,42 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-client = KafkaClient(hosts=bootstrap_server)
+client = KafkaClient(
+    hosts=bootstrap_server,
+    ssl_config = security_conf)
 topic = client.topics[topic_name]
 
-with topic.get_producer(
-    delivery_reports = (False if num_acks == 0 else True), 
-    use_rdkafka = True,
-    linger_ms = 50,
-    required_acks = num_acks, # how to specify acks = 'all'? 
-    max_queued_messages = 500000, # exception thrown if queue fills up.
-    compression = compression_conf,
-    ssl_config = security_conf
-) as producer:
+
+if compression_conf != None:
+    producer = topic.get_producer(
+        delivery_reports = (False if num_acks == 0 else True), 
+        use_rdkafka = rdkafka,
+        linger_ms = 50,
+        required_acks = num_acks,
+        max_queued_messages = 500000,
+        compression = compression_conf
+    )
+else:
+    producer = topic.get_producer(
+        delivery_reports = (False if num_acks == 0 else True), 
+        use_rdkafka = rdkafka,
+        linger_ms = 50,
+        required_acks = num_acks,
+        max_queued_messages = 500000
+    )
+
+with producer:
 
     # warm-up.
     for _ in range(num_partitions):
         producer.produce(message)
-        msg, err = producer.get_delivery_report(block=True)
-        if err is not None:
-            print('# Error occured producing warm-up message.')
+        if num_acks != 0:
+            msg, err = producer.get_delivery_report(block=True)
+            if err is not None:
+                print('# Error occured producing warm-up message.')
+
+    if num_acks == 0:
+        time.sleep(5)
 
     success_count = 0
     error_count = 0
@@ -87,11 +106,11 @@ with topic.get_producer(
                 if compression == 'none':
                     producer.produce(message)
                 else:
+                    producer.produce(urls[url_cnt])
+                    total_size += len(urls[url_cnt])
                     url_cnt += 1
                     if url_cnt >= len(urls):
                         url_cnt = 0
-                    total_size += len(urls[url_cnt])
-                    producer.produce(urls[url_cnt])
                 break
             except ProducerQueueFullError:
                 if num_acks != 0:
@@ -107,7 +126,7 @@ with topic.get_producer(
     if num_acks != 0:
         print ('# delivery reports handled during produce: {}'.format(dr_count))
         for _ in range(dr_count, num_messages):
-            msg, err = producer.get_delivery_report(block=True, timeout=1)
+            msg, err = producer.get_delivery_report(block=True, timeout=10)
             if err is not None:
                 error_count += 1
             else:
@@ -146,15 +165,19 @@ with topic.get_producer(
 
 # _____ CONSUME TEST ______
 
-client = KafkaClient(hosts=bootstrap_server)
+client = KafkaClient(
+    hosts=bootstrap_server,
+    ssl_config = security_conf
+)
 topic = client.topics[topic_name]
 
 consumer = topic.get_simple_consumer(
-    use_rdkafka=True
+    use_rdkafka = rdkafka
 )
 
 success_count = 0
 error_count = 0
+total_size = 0
 
 # warm up
 msg = consumer.consume()
@@ -169,9 +192,7 @@ while True:
         error_count += 1
 
     if compression != 'none':
-        total_size += len(msg.value())
-
-    todo aggregate length
+        total_size += len(msg.value)
 
     if success_count + error_count >= num_messages:
         break

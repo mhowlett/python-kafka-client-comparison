@@ -42,9 +42,8 @@ producer = KafkaProducer(
     buffer_memory = 500000 * message_len, # match confluent-kafka setting.
     retries = 0,
     acks = num_acks,
-    linger_ms = 100,
-    max_block_ms = 10,
-    max_in_flight_requests_per_connection = 20,
+    linger_ms = 100, # TODO: test effect of this. we're trying to maximise throughput, not concerned with latency.
+    max_in_flight_requests_per_connection = 1000, # ensure this doesn't constrain.
     security_protocol = security_conf,
     ssl_cafile = ca_file,
     compression_type = compression_conf
@@ -71,17 +70,16 @@ success_count = 0
 total_size = 0
 
 if num_acks != 0:
-
     futures = []
     for _ in range(num_messages):
         if compression == 'none':
             futures.append(producer.send(topic_name, message))
         else:
+            futures.append(producer.send(topic_name, urls[url_cnt]))
+            total_size += len(urls[url_cnt])
             url_cnt += 1
             if url_cnt >= len(urls):
                 url_cnt = 0
-            total_size += len(urls[url_cnt])
-            futures.append(producer.send(topic_name, urls[url_cnt]))
 
     for f in futures:
         dr = f.get(60)
@@ -92,11 +90,11 @@ else:
         if compression == 'none':
             producer.send(topic_name, message)
         else:
+            producer.send(topic_name, urls[url_cnt])
+            total_size += len(urls[url_cnt]) # O(1)
             url_cnt += 1
             if url_cnt >= len(urls):
                 url_cnt = 0
-            total_size += len(urls[url_cnt]) # what is the cost of this c.f. produce?
-            producer.send(topic_name, urls[url_cnt])
 
     producer.flush()
 
@@ -126,9 +124,6 @@ print(
 
 # _____ CONSUME TEST ______
 
-success_count = 0
-error_count = 0
-
 consumer = KafkaConsumer(
     bootstrap_servers = bootstrap_servers, 
     group_id = uuid.uuid1(),
@@ -143,6 +138,7 @@ consumer.subscribe([topic_name])
 for msg in consumer:
     break
 
+success_count = 0
 total_size = 0
 
 start_time = timeit.default_timer()
@@ -151,7 +147,8 @@ for msg in consumer:
     if compression != 'none':
         total_size += len(msg.value)
     success_count += 1
-    if (success_count + error_count >= num_messages):
+    # there is no error firled in consumed messages.
+    if (success_count >= num_messages):
         break
 
 elapsed = timeit.default_timer() - start_time
