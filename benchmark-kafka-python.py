@@ -172,5 +172,4 @@ print(
         elapsed, 
         num_messages/elapsed, 
         mb_per_s))
-            
-print('# success: {}, # error: {}'.format(success_count, error_count))
+
