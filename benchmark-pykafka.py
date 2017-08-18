@@ -4,8 +4,10 @@ import time
 import os
 from pykafka import KafkaClient
 from pykafka.exceptions import ProducerQueueFullError
+from pykafka.common import CompressionType
+from pykafka.connection import SslConfig
 
-bootstrap_server = sys.argv[1]
+bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
@@ -15,13 +17,36 @@ if sys.argv[5] == 'all':
 else:
     num_acks = int(sys.argv[5])
 
-topic_name = bytes("test-topic-p{0}-r3-s{1}".format(num_partitions, message_len), 'utf-8')
+compression = sys.argv[6]
+compression_conf = None
+if compression == 'snappy':
+    compression_conf = CompressionType.SNAPPY
+elif compression == 'gzip':
+    compression_conf = CompressionType.GZIP
+elif compression == 'lz4':
+    print('# lz4 compression not supported by pykafka')
+    exit(0)
+
+security = sys.argv[7]
+security_conf = None
+if security == 'SSL':
+    security_conf = SslConfig('/tmp/ca-root.crt')
+    bootstrap_server = sys.argv[1] + ':29097'
 
 
-print("# Type, Client, Broker, Partitions, Msg Size, Msg Count, Acks, s, Msg/s, Mb/s")
+if compression == 'none':
+    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
+else:
+    topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
+
+
+print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
 
 
 # _____ PRODUCE TEST ______
+
+with open('/tmp/urls.10K.txt') as f:
+    urls = f.readlines()
 
 message = bytearray()
 for i in range(message_len):
@@ -36,31 +61,37 @@ with topic.get_producer(
     use_rdkafka = True,
     linger_ms = 50,
     required_acks = num_acks, # how to specify acks = 'all'? 
-    max_queued_messages = 500000 # exception thrown if queue fills up.
+    max_queued_messages = 500000, # exception thrown if queue fills up.
+    compression = compression_conf,
+    ssl_config = security_conf
 ) as producer:
 
     # warm-up.
-    if num_acks > 0:
-        for _ in range(num_partitions):
-            producer.produce(message)
-            msg, err = producer.get_delivery_report(block=True)
-            if err is not None:
-                print("# Error occured producing warm-up message.")
-    else:
-        for _ in range(num_partitions):
-            producer.produce(message)
-        time.sleep(5)
+    for _ in range(num_partitions):
+        producer.produce(message)
+        msg, err = producer.get_delivery_report(block=True)
+        if err is not None:
+            print('# Error occured producing warm-up message.')
 
     success_count = 0
     error_count = 0
     dr_count = 0
-    
+    url_cnt = 0
+    total_size = 0
+
     start_time = timeit.default_timer()
     
     for _ in range(num_messages):
         while True:
             try:
-                producer.produce(message)
+                if compression == 'none':
+                    producer.produce(message)
+                else:
+                    url_cnt += 1
+                    if url_cnt >= len(urls):
+                        url_cnt = 0
+                    total_size += len(urls[url_cnt])
+                    producer.produce(urls[url_cnt])
                 break
             except ProducerQueueFullError:
                 if num_acks != 0:
@@ -74,7 +105,7 @@ with topic.get_producer(
                     time.sleep(0.01)
     
     if num_acks != 0:
-        print ("# delivery reports handled during produce: {}".format(dr_count))
+        print ('# delivery reports handled during produce: {}'.format(dr_count))
         for _ in range(dr_count, num_messages):
             msg, err = producer.get_delivery_report(block=True, timeout=1)
             if err is not None:
@@ -85,19 +116,30 @@ with topic.get_producer(
         producer.stop() # Flushes all messages.
 
     elapsed = timeit.default_timer() - start_time
+
+    mb_per_s = num_messages/elapsed*message_len/1048576
+    if compression != 'none':
+        mb_per_s = total_size/elapsed/1048576
+
+    size = message_len
+    if compression != 'none':
+        size = total_size/num_messages
+
     if error_count == 0:
         print(
-            "P, C, {0}, {1}, {2}, {3}, {4}, {5:.1f}, {6:.0f}, {7:.2f}".format(
+            'P, C, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}'.format(
                 os.environ['CONFLUENT'], 
                 num_partitions,
-                message_len, 
+                size, 
                 success_count + error_count, 
                 num_acks, 
+                compression,
+                security,
                 elapsed, 
                 num_messages/elapsed,
-                num_messages/elapsed*message_len/1048576))
+                mb_per_s))
     else:
-        print("# success: {}, # error: {}".format(success_count, error_count))
+        print('# success: {}, # error: {}'.format(success_count, error_count))
 
     producer.stop()
 
@@ -126,21 +168,37 @@ while True:
     else:
         error_count += 1
 
+    if compression != 'none':
+        total_size += len(msg.value())
+
+    todo aggregate length
+
     if success_count + error_count >= num_messages:
         break
 
 elapsed = timeit.default_timer() - start_time
+
+mb_per_s = num_messages/elapsed*message_len/1048576
+if compression != 'none':
+    mb_per_s = total_size/elapsed/1048576
+
+size = message_len
+if compression != 'none':
+    size = total_size/num_messages
+
 if error_count == 0:
     print(
-        "C, C, {0}, {1}, {2}, {3}, -, {4:.1f}, {5:.0f}, {6:.2f}".format(
+        'C, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}'.format(
             os.environ['CONFLUENT'], 
             num_partitions,
-            message_len, 
+            size, 
             num_messages, 
+            compression,
+            security,
             elapsed, 
             num_messages/elapsed, 
-            num_messages/elapsed*message_len/1048576))
+            mb_per_s))
 else:
-    print("# success: {}, # error: {}".format(success_count, error_count))
+    print('# success: {}, # error: {}'.format(success_count, error_count))
 
 consumer.stop()

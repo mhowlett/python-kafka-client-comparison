@@ -5,7 +5,7 @@ import time
 import uuid
 from confluent_kafka import Producer, Consumer, KafkaError
 
-bootstrap_server = sys.argv[1] + ":29092"
+bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
@@ -13,31 +13,31 @@ num_acks = sys.argv[5]
 compression = sys.argv[6]
 security = sys.argv[7]
 if security == 'SSL':
-    bootstrap_server = sys.argv[1] + ":29097"
+    bootstrap_server = sys.argv[1] + ':29097'
 
 if compression == 'none':
-    topic_name = "test-topic-p{0}-r3-s{1}".format(num_partitions, message_len)
+    topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
 else:
-    topic_name = "test-topic-{0}".format(compression)
+    topic_name = 'test-topic-{0}'.format(compression)
 
-print("# topic: {} bs: {}".format(topic_name, bootstrap_server))
-print("# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s")
+
+print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
 
 
 # _____ PRODUCE TEST ______
 
 producerSettings = {
     'bootstrap.servers': bootstrap_server,
-    # 'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
-    # 'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
-    # 'message.send.max.retries': 0,
-    # 'acks': num_acks,
-    # 'compression.codec': compression
+    'queue.buffering.max.messages': 500000, # matches librdkafka perf test setting.
+    'linger.ms': 50,  # see ~50% performance increase when linger.ms > 0.
+    'message.send.max.retries': 0,
+    'acks': num_acks,
+    'compression.codec': compression
 }
 
 if security == 'SSL':
-    producerSettings["security.protocol"] = "SSL"
-    producerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+    producerSettings['security.protocol'] = 'SSL'
+    producerSettings['ssl.ca.location'] = '/tmp/ca-root.crt'
 
 # print(producerSettings)
 producer = Producer(producerSettings)
@@ -69,7 +69,7 @@ for _ in range(num_messages + num_partitions):
     while True:
         try:
             # round-robin to all partitions.
-            if compression == "none":
+            if compression == 'none':
                 producer.produce(topic_name, message, callback=acked)
             else:
                 url_cnt += 1
@@ -98,7 +98,7 @@ if compression != 'none':
 
 if error_count == 0:
     print(
-        "Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}".format(
+        'Confluent, P, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7:.1f}, {8:.0f}, {9:.2f}'.format(
             os.environ['CONFLUENT'], 
             num_partitions,
             size, 
@@ -110,7 +110,7 @@ if error_count == 0:
             num_messages/elapsed,
             mb_per_s))
 else:
-    print("# success: {}, # error: {}".format(success_count, error_count))
+    print('# success: {}, # error: {}'.format(success_count, error_count))
 
 
 # _____ CONSUME TEST ______
@@ -125,8 +125,8 @@ consumerSettings = {
 }
 
 if security == 'SSL':
-    consumerSettings["security.protocol"] = "SSL"
-    consumerSettings["ssl.ca.location"] = "/tmp/ca-root.crt"
+    consumerSettings['security.protocol'] = 'SSL'
+    consumerSettings['ssl.ca.location'] = '/tmp/ca-root.crt'
 
 c = Consumer(consumerSettings)
 
@@ -137,7 +137,7 @@ error_count = 0
 
 msg = c.poll(10)
 if msg is None or msg.error():
-    print("error reading first message")
+    print('error reading first message')
 
 start_time = timeit.default_timer()
 
@@ -177,7 +177,7 @@ finally:
 
     if error_count == 0:
         print(
-            "Confluent, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}".format(
+            'Confluent, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}'.format(
                 os.environ['CONFLUENT'], 
                 num_partitions,
                 size, 
@@ -188,6 +188,6 @@ finally:
                 num_messages/elapsed, 
                 mb_per_s))
     else:
-        print("# success: {}, # error: {}".format(success_count, error_count))
+        print('# success: {}, # error: {}'.format(success_count, error_count))
 
     c.close()
