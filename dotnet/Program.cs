@@ -12,7 +12,7 @@ namespace dotnet
         {
             var config = new Dictionary<string, object> 
             { 
-                { "bootstrap.servers", "54.190.62.218:29097" },
+                { "bootstrap.servers", "54.190.62.218:29093" },
                 { "security.protocol", "SSL" },
                 { "ssl.ca.location", "/tmp/ca-root.crt" },
                 { "debug", "security" }

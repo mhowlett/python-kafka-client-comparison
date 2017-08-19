@@ -1,7 +1,7 @@
 from confluent_kafka import Producer, Consumer, KafkaError
 
 producerSettings = {
-    'bootstrap.servers': "54.191.156.185:29097",
+    'bootstrap.servers': "54.191.156.185:29093",
     'acks': 1,
     "security.protocol": "SSL",
     "ssl.ca.location": "/tmp/ca-root.crt",

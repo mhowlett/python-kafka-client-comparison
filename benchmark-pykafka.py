@@ -33,7 +33,7 @@ security = sys.argv[7]
 security_conf = None
 if security == 'SSL':
     security_conf = SslConfig('/tmp/ca-root.crt')
-    bootstrap_server = sys.argv[1] + ':29097'
+    bootstrap_server = sys.argv[1] + ':29093'
 
 
 if compression == 'none':

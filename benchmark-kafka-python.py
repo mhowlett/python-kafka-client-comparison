@@ -27,7 +27,7 @@ security_conf = None
 ca_file = None
 if security == 'SSL':
     security_conf = security
-    bootstrap_servers = sys.argv[1] + ':29097'
+    bootstrap_servers = sys.argv[1] + ':29093'
     ca_file = '/tmp/ca-root.crt'
 if security == 'none':
     security_conf = 'PLAINTEXT'

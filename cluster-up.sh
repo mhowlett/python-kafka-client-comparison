@@ -96,12 +96,12 @@ start_broker()
     docker run -d \
         --net=host \
         --name=kafka \
-        -p 29097:29097 -p 29092:29092 \
+        -p 29093:29093 -p 29092:29092 \
         -v /mnt/kafka/data:/var/lib/kafka/data:cached \
         -v /tmp:/etc/kafka/secrets \
         -e KAFKA_ZOOKEEPER_CONNECT=$(docker-machine ip ${prefix}-1):32181 \
-        -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092,SSL://0.0.0.0:29097 \
-        -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip ${prefix}-$1):29092,SSL://$(docker-machine ip ${prefix}-$1):29097 \
+        -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092,SSL://0.0.0.0:29093 \
+        -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$(docker-machine ip ${prefix}-$1):29092,SSL://$(docker-machine ip ${prefix}-$1):29093 \
         -e KAFKA_SSL_KEYSTORE_FILENAME=$(docker-machine ip ${prefix}-$1).keystore.jks \
         -e KAFKA_SSL_KEYSTORE_TYPE=JKS \
         -e KAFKA_SSL_KEYSTORE_CREDENTIALS=ssl_creds \

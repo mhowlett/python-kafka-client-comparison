@@ -13,7 +13,7 @@ num_acks = sys.argv[5]
 compression = sys.argv[6]
 security = sys.argv[7]
 if security == 'SSL':
-    bootstrap_server = sys.argv[1] + ':29097'
+    bootstrap_server = sys.argv[1] + ':29093'
 
 if compression == 'none':
     topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
