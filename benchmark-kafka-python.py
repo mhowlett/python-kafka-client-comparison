@@ -52,7 +52,7 @@ producer = KafkaProducer(
 
 with open('/tmp/urls.10K.txt') as f:
     urls = f.readlines()
-urls = [bytes(url) for url in urls]
+urls = [bytes(url, 'utf-8') for url in urls]
 
 message = bytearray()
 for i in range(message_len):

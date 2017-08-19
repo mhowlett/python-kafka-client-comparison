@@ -49,6 +49,7 @@ print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 
 with open('/tmp/urls.10K.txt') as f:
     urls = f.readlines()
+urls = [bytes(url, 'utf-8') for url in urls]
 
 message = bytearray()
 for i in range(message_len):
