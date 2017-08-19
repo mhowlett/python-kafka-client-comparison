@@ -41,11 +41,11 @@ run_test_group()
     run_test $1 1 $2 all none none >> results-$client.csv
 }
 
-#run_test_group $message_count 64
-#run_test_group $(( $message_count / 2 )) 128
-#run_test_group $(( $message_count / 4 )) 256
-#run_test_group $(( $message_count / 8 )) 512
-#run_test_group $(( $message_count / 16 )) 1024
+run_test_group $message_count 64
+run_test_group $(( $message_count / 2 )) 128
+run_test_group $(( $message_count / 4 )) 256
+run_test_group $(( $message_count / 8 )) 512
+run_test_group $(( $message_count / 16 )) 1024
 
 # set message length explicitly, as some client buffer sizes are computed from this.
 run_test $message_count 1 100 all gzip none

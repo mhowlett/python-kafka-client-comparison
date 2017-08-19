@@ -7,7 +7,7 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 
-rdkafka = False
+rdkafka = True
 
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
@@ -26,7 +26,7 @@ if compression == 'snappy':
 elif compression == 'gzip':
     compression_conf = CompressionType.GZIP
 elif compression == 'lz4':
-    print('# lz4 compression not supported by pykafka')
+    print('# lz4 compression is not supported by pykafka')
     exit(0)
 
 security = sys.argv[7]
@@ -56,9 +56,7 @@ for i in range(message_len):
     message.extend([48 + i%10])
 message = bytes(message)
 
-client = KafkaClient(
-    hosts=bootstrap_server,
-    ssl_config = security_conf)
+client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
 topic = client.topics[topic_name]
 
 
@@ -166,10 +164,7 @@ with producer:
 
 # _____ CONSUME TEST ______
 
-client = KafkaClient(
-    hosts=bootstrap_server,
-    ssl_config = security_conf
-)
+client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
 topic = client.topics[topic_name]
 
 consumer = topic.get_simple_consumer(
