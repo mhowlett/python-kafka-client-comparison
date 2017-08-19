@@ -52,6 +52,7 @@ producer = KafkaProducer(
 
 with open('/tmp/urls.10K.txt') as f:
     urls = f.readlines()
+urls = [bytes(url) for url in urls]
 
 message = bytearray()
 for i in range(message_len):
@@ -83,6 +84,7 @@ if num_acks != 0:
 
     for f in futures:
         dr = f.get(60)
+        # will throw an exception if error. todo: check specifics
         success_count += 1
 
 else:
@@ -97,6 +99,7 @@ else:
                 url_cnt = 0
 
     producer.flush()
+    success_count = num_messages
 
 elapsed = timeit.default_timer() - start_time
 
@@ -147,7 +150,7 @@ for msg in consumer:
     if compression != 'none':
         total_size += len(msg.value)
     success_count += 1
-    # there is no error firled in consumed messages.
+    # there is no error in consumed messages.
     if (success_count >= num_messages):
         break
 
