@@ -7,7 +7,7 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 
-rdkafka = False
+rdkafka = sys.argv[8] == 'true'
 
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
@@ -15,6 +15,9 @@ num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = 0
 if sys.argv[5] == 'all':
+    if not rdkafka:
+        print('# acks=all does not work with rdkafka=False')
+        exit(0)
     num_acks = 3
 else:
     num_acks = int(sys.argv[5])
@@ -37,9 +40,16 @@ if security == 'SSL':
 
 
 if compression == 'none':
-    topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
+    if sys.version_info >= (3, 0):
+        topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
+    else:
+        topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len))
+
 else:
-    topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
+    if sys.version_info >= (3, 0):
+        topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
+    else:
+        topic_name = bytes('test-topic-{0}'.format(compression))
 
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
@@ -49,7 +59,10 @@ print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 
 with open('/tmp/urls.10K.txt') as f:
     urls = f.readlines()
-urls = [bytes(url, 'utf-8') for url in urls]
+if sys.version_info >= (3, 0):
+    urls = [bytes(url, 'utf-8') for url in urls]
+else:
+    urls = [bytes(url) for url in urls]
 
 message = bytearray()
 for i in range(message_len):
