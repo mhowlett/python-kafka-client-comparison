@@ -7,7 +7,7 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 
-rdkafka = True
+rdkafka = False
 
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
@@ -167,9 +167,7 @@ with producer:
 client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
 topic = client.topics[topic_name]
 
-consumer = topic.get_simple_consumer(
-    use_rdkafka = rdkafka
-)
+consumer = topic.get_simple_consumer(use_rdkafka = rdkafka)
 
 success_count = 0
 error_count = 0
