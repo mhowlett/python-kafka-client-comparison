@@ -54,9 +54,9 @@ run_test_group $(( $message_count / 8 )) 512
 run_test_group $(( $message_count / 16 )) 1024
 
 # set message length explicitly, as some client buffer sizes are computed from this.
-run_test $message_count 1 256 all gzip none
-run_test $message_count 1 256 all gzip none >> results-$client.csv
-run_test $message_count 1 256 all snappy none
-run_test $message_count 1 256 all snappy none >> results-$client.csv
-run_test $message_count 1 256 all lz4 none
-run_test $message_count 1 256 all lz4 none >> results-$client.csv
+run_test $message_count 1 256 1 gzip none
+run_test $message_count 1 256 1 gzip none >> results-$client.csv
+run_test $message_count 1 256 1 snappy none
+run_test $message_count 1 256 1 snappy none >> results-$client.csv
+run_test $message_count 1 256 1 lz4 none
+run_test $message_count 1 256 1 lz4 none >> results-$client.csv
