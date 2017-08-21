@@ -174,7 +174,7 @@ public class Program {
         "# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s"
     );
 
-    if (action == "Both" || action == "Produce")
+    if (action.equals("Both") || action.equals("Produce"))
     {
       Produce(
         bootstrapServer,
@@ -186,7 +186,7 @@ public class Program {
       );
     }
 
-    if (action == "Both" || action == "Consume")
+    if (action.equals("Both") || action.equals("Consume"))
     {
       Consume(
           bootstrapServer,
