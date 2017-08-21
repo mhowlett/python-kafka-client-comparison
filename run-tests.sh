@@ -20,19 +20,35 @@ fi
 run_test()
 {
     if [ "$client" = "java" ]; then
-        cmd="cd /src/java/; java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" $1 $2 $3 $4 $5 $6 100"
+        cmd="cd /src/java/; java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 100"
         docker exec java-env sh -c "$cmd"
     elif [ "$client" = "pykafka" ]; then
-        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 false"
+        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 false"
         docker exec python-env sh -c "$cmd"
     elif [ "$client" = "pykafka-rdkafka" ]; then
-        cmd="python /src/benchmark-pykafka.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 true"
+        cmd="python /src/benchmark-pykafka.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 true"
         docker exec python-env sh -c "$cmd"
     else
-        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6"
+        cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7"
         docker exec python-env sh -c "$cmd"
     fi
 }
+
+compare_group()
+{
+    run_test $1 3 $2 1 none none Produce
+    run_test $1 3 $2 1 none none Produce
+    run_test $1 3 $2 1 none none Consume
+    run_test $1 3 $2 1 none none Consume
+    run_test $1 3 $2 1 none none Consume >> results-$client.csv
+}
+
+compare_group $message_count 64
+compare_group $(( $message_count / 2 )) 128
+compare_group $(( $message_count / 4 )) 256
+compare_group $(( $message_count / 8 )) 512
+compare_group $(( $message_count / 16 )) 1024
+
 
 run_test_group()
 {
@@ -47,16 +63,19 @@ run_test_group()
     run_test $1 1 $2 all none none >> results-$client.csv
 }
 
-run_test_group $message_count 64
-run_test_group $(( $message_count / 2 )) 128
-run_test_group $(( $message_count / 4 )) 256
-run_test_group $(( $message_count / 8 )) 512
-run_test_group $(( $message_count / 16 )) 1024
+do_old()
+{
+    run_test_group $message_count 64
+    run_test_group $(( $message_count / 2 )) 128
+    run_test_group $(( $message_count / 4 )) 256
+    run_test_group $(( $message_count / 8 )) 512
+    run_test_group $(( $message_count / 16 )) 1024
 
-# set message length explicitly, as some client buffer sizes are computed from this.
-run_test $message_count 1 256 1 gzip none
-run_test $message_count 1 256 1 gzip none >> results-$client.csv
-run_test $message_count 1 256 1 snappy none
-run_test $message_count 1 256 1 snappy none >> results-$client.csv
-run_test $message_count 1 256 1 lz4 none
-run_test $message_count 1 256 1 lz4 none >> results-$client.csv
+    # set message length explicitly, as some client buffer sizes are computed from this.
+    run_test $message_count 1 256 1 gzip none
+    run_test $message_count 1 256 1 gzip none >> results-$client.csv
+    run_test $message_count 1 256 1 snappy none
+    run_test $message_count 1 256 1 snappy none >> results-$client.csv
+    run_test $message_count 1 256 1 lz4 none
+    run_test $message_count 1 256 1 lz4 none >> results-$client.csv
+}

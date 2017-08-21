@@ -167,26 +167,33 @@ public class Program {
     String numAcks = args[4];
     String compression = args[5]; // unused.
     String security = args[6]; // unused.
-    int linger = Integer.parseInt(args[7]);
+    String action = args[7];
+    int linger = Integer.parseInt(args[8]);
 
     System.out.println(
         "# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s"
     );
 
-    Produce(
-      bootstrapServer,
-      messageLength,
-      messageCount,
-      numAcks,
-      partitionCount,
-      linger
-    );
-
-    Consume(
+    if (action == "Both" || action == "Produce")
+    {
+      Produce(
         bootstrapServer,
-        messageCount,
         messageLength,
-        partitionCount
-    );
+        messageCount,
+        numAcks,
+        partitionCount,
+        linger
+      );
+    }
+
+    if (action == "Both" || action == "Consume")
+    {
+      Consume(
+          bootstrapServer,
+          messageCount,
+          messageLength,
+          partitionCount
+      );
+    }
   }
 }

@@ -7,7 +7,7 @@ from matplotlib.ticker import FuncFormatter
 
 DataKey = namedtuple(
   "DataKey",
-  "Type, Client, Version, Partitions, Size, Acks")
+  "Client, Type, Version, Partitions, Size, Acks, Compression, Security")
 
 DataValue = namedtuple(
   "DataValue",
@@ -30,8 +30,8 @@ def read_data(filename):
                 continue
 
             vs = list(map(lambda v: v.strip(), vs))
-            k = DataKey(vs[0], vs[1], vs[2], vs[3], vs[4], vs[6])
-            v = DataValue(vs[8], vs[9])
+            k = DataKey(vs[0], vs[1], vs[2], vs[3], vs[4], vs[6], vs[7], vs[8])
+            v = DataValue(vs[10], vs[11])
             if k in data:
                 data[k].append(v)
             else:
@@ -47,7 +47,7 @@ def get_color(v):
         cseen.append(v)
     return css[cseen.index(v) % len(css)]
 
-css2 = ["#0054F2", "#F2DE00", "#F20000", "#00F291"]
+css2 = ["#0054F2", "#F2DE00", "#F20000", "#00F291", "#F200CE"]
 cseen2 = []
 def get_color2(v):
     if not v in cseen2:
@@ -63,23 +63,36 @@ def get_linestyle(v):
     return lss[seen.index(v) % len(lss)]
 
 
-client_labels = ['kafka-python', 'pykafka', 'confluent-kafka', 'java client']
+client_labels = ['kafka-python', 'pykafka', 'pykafka-rdkafka', 'confluent-kafka', 'java client']
 
 
-def aggregate_data(data, type=None, client=None, version=None, partitions=None, acks=None):
+def aggregate_data(data, type=None, client=None, version=None, partitions=None, acks=None, compression=None, security=None):
     msgs = {}
     mbs = {}
 
     for key in data:
-        size = int(key.Size)
+        size = int(float(key.Size))
 
         k = []
 
         # ignore anything that doesn't match criteria.
+
         if acks == None:
             k.append(key.Acks)
         else:
             if key.Acks != acks:
+                continue
+
+        if compression == None:
+            k.append(key.Compression)
+        else:
+            if key.Compression != compression:
+                continue
+
+        if security == None:
+            k.append(key.Security)
+        else:
+            if key.Security != security:
                 continue
 
         if client == None:
@@ -288,7 +301,7 @@ def make_plot_p_comparison(data):
     a[1].set_ylim(bottom=0)
     a[1].yaxis.set_major_formatter(formatter)
 
-    a[0].legend(bbox_to_anchor=(1.8, -0.15, 0.01, 0.01), ncol=4)
+    a[0].legend(bbox_to_anchor=(2.0, -0.15, 0.01, 0.01), ncol=5)
 
     f.tight_layout()
     f.subplots_adjust(bottom=0.2)
@@ -329,7 +342,7 @@ def make_plot_c_comparison(data):
     a[1].set_ylim(bottom=0)
     a[1].yaxis.set_major_formatter(formatter)
 
-    a[0].legend(bbox_to_anchor=(1.8, -0.15, 0.01, 0.01), ncol=4)
+    a[0].legend(bbox_to_anchor=(2.0, -0.15, 0.01, 0.01), ncol=5)
 
     f.tight_layout()
     f.subplots_adjust(bottom=0.2)
@@ -340,38 +353,42 @@ def make_plot_c_comparison(data):
 d_k = [
     read_data("results-kafka-python.csv"),
     read_data("results-pykafka.csv"),
+    read_data("results-pykafka-rdkafka.csv"),
     read_data("results-confluent-kafka.csv"),
     read_data("results-java.csv")
 ]
 
-p_k = aggregate_data(d_k[0], type="P", version='3.3.0', client='K')
-p_p = aggregate_data(d_k[1], type='P', version='3.3.0', client='P')
-p_c = aggregate_data(d_k[2], type="P", version='3.3.0', client='C')
-p_j = aggregate_data(d_k[3], type='P', version='3.3.0', client='J')
-p_data = [p_k, p_p, p_c, p_j]
-#make_plot_qualitative_p(p_data)
-#make_plot_p_comparison(p_data)
+p_k = aggregate_data(d_k[0], type='P', version='3.3.0', client='KafkaPython', compression='none', security='none')
+p_p = aggregate_data(d_k[1], type='P', version='3.3.0', client='P', compression='none', security='none')
+p_r = aggregate_data(d_k[2], type='P', version='3.3.0', client='R', compression='none', security='none')
+p_c = aggregate_data(d_k[3], type='P', version='3.3.0', client='Confluent', compression='none', security='none')
+p_j = aggregate_data(d_k[4], type='P', version='3.3.0', client='Java', compression='none', security='none')
+p_data = [p_k, p_p, p_r, p_c, p_j]
+# make_plot_qualitative_p(p_data)
+make_plot_p_comparison(p_data)
+exit(0)
 
-c_k = aggregate_data(d_k[0], type="C", version='3.3.0', client='K', acks='-')
-c_p = aggregate_data(d_k[1], type='C', version='3.3.0', client='P', acks='-')
-c_c = aggregate_data(d_k[2], type="C", version='3.3.0', client='C', acks='-')
-c_j = aggregate_data(d_k[3], type='C', version='3.3.0', client='J', acks='-')
-c_data = [c_k, c_p, c_c, c_j]
-#make_plot_qualitative_c(c_data)
-#make_plot_c_comparison(c_data)
-
+c_k = aggregate_data(d_k[0], type="C", version='3.3.0', client='KafkaPython', acks='-', compression='none', security='none')
+c_p = aggregate_data(d_k[1], type='C', version='3.3.0', client='P', acks='-', compression='none', security='none')
+c_r = aggregate_data(d_k[2], type='C', version='3.3.0', client='R', acks='-', compression='none', security='none')
+c_c = aggregate_data(d_k[3], type="C", version='3.3.0', client='Confluent', acks='-', compression='none', security='none')
+c_j = aggregate_data(d_k[4], type='C', version='3.3.0', client='Java', acks='-', compression='none', security='none')
+c_data = [c_k, c_p, c_r, c_c, c_j]
+# make_plot_qualitative_c(c_data)
+make_plot_c_comparison(c_data)
+exit(0)
 
 make_plot_version_diff(
     [
-        aggregate_data(d_k[0], type="P", client='K', acks='1', partitions='3'),
-        aggregate_data(d_k[1], type="P", client='P', acks='1', partitions='3'),
-        aggregate_data(d_k[2], type="P", client='C', acks='1', partitions='3'),
-        aggregate_data(d_k[3], type="P", client='J', acks='1', partitions='3')
+        aggregate_data(d_k[0], type='P', client='K', acks='1', partitions='3'),
+        aggregate_data(d_k[1], type='P', client='P', acks='1', partitions='3'),
+        aggregate_data(d_k[2], type='P', client='R', acks='1', partitions='3'),
+        aggregate_data(d_k[3], type='P', client='C', acks='1', partitions='3')
     ], 
     [
-        aggregate_data(d_k[0], type="C", client='K', acks='-', partitions='3'),
-        aggregate_data(d_k[1], type="C", client='P', acks='-', partitions='3'),
-        aggregate_data(d_k[2], type="C", client='C', acks='-', partitions='3'),
-        aggregate_data(d_k[3], type="C", client='J', acks='-', partitions='3')
+        aggregate_data(d_k[0], type='C', client='K', acks='-', partitions='3'),
+        aggregate_data(d_k[1], type='C', client='P', acks='-', partitions='3'),
+        aggregate_data(d_k[2], type='C', client='R', acks='-', partitions='3'),
+        aggregate_data(d_k[3], type='C', client='C', acks='-', partitions='3')
     ]
 )
