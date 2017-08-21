@@ -37,7 +37,8 @@ run_test()
 compare_group()
 {
     run_test $1 3 $2 1 none none Produce
-    run_test $1 3 $2 1 none none Produce
+    run_test $1 3 $2 1 none none Produce >> results-$client.csv
+    run_test $1 3 $2 1 none none Consume
     run_test $1 3 $2 1 none none Consume
     run_test $1 3 $2 1 none none Consume
     run_test $1 3 $2 1 none none Consume >> results-$client.csv

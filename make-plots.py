@@ -131,8 +131,8 @@ def aggregate_data(data, type=None, client=None, version=None, partitions=None, 
         msgsps = list(map(lambda x: int(x.MsgsPerSec), data[key]))
         mbsps = list(map(lambda x: float(x.MbPerSec), data[key]))
 
-        msgs[k].append((size, sum(msgsps)/len(msgsps)))
-        mbs[k].append((size, sum(mbsps)/len(mbsps)))
+        msgs[k].append((size, max(msgsps)))
+        mbs[k].append((size, max(mbsps)))
 
     return (mbs, msgs)
 
@@ -365,8 +365,8 @@ p_c = aggregate_data(d_k[3], type='P', version='3.3.0', client='Confluent', comp
 p_j = aggregate_data(d_k[4], type='P', version='3.3.0', client='Java', compression='none', security='none')
 p_data = [p_k, p_p, p_r, p_c, p_j]
 # make_plot_qualitative_p(p_data)
-make_plot_p_comparison(p_data)
-exit(0)
+#make_plot_p_comparison(p_data)
+#exit(0)
 
 c_k = aggregate_data(d_k[0], type="C", version='3.3.0', client='KafkaPython', acks='-', compression='none', security='none')
 c_p = aggregate_data(d_k[1], type='C', version='3.3.0', client='P', acks='-', compression='none', security='none')
