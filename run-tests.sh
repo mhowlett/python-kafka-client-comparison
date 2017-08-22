@@ -34,18 +34,15 @@ run_test()
     fi
 }
 
-run_test_group()
+run_test_group_core()
 {
     # warm up
     run_test $1 3 $2 0 none none Produce # get some data in the topic
     run_test $1 3 $2 0 none none Both # ensure without doubt there is enough data, then consume (from beginning)
     run_test $1 3 $2 0 none none Consume # consume from beginning again. extra sure in page cache.
 
-    run_test $1 3 $2 0 none none Consume >> results-$client.csv
-    run_test $1 3 $2 1 none none Consume >> results-$client.csv
+    run_test $1 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
     run_test $1 3 $2 1 none SSL Consume >> results-$client.csv
-    run_test $1 3 $2 all none none Consume >> results-$client.csv
-    run_test $1 3 $2 all none SSL Consume >> results-$client.csv
 
     run_test $1 3 $2 0 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none none Produce >> results-$client.csv
@@ -58,11 +55,8 @@ run_test_group()
     run_test $1 1 $2 0 none none Both
     run_test $1 1 $2 0 none none Consume
 
-    run_test $1 1 $2 0 none none Consume >> results-$client.csv 
-    run_test $1 1 $2 1 none none Consume >> results-$client.csv
+    run_test $1 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
     run_test $1 1 $2 1 none SSL Consume >> results-$client.csv
-    run_test $1 1 $2 all none none Consume >> results-$client.csv
-    run_test $1 1 $2 all none SSL Consume >> results-$client.csv
 
     run_test $1 1 $2 0 none none Produce >> results-$client.csv 
     run_test $1 1 $2 1 none none Produce >> results-$client.csv
@@ -71,11 +65,32 @@ run_test_group()
     run_test $1 1 $2 all none SSL Produce >> results-$client.csv
 }
 
-#run_test_group $message_count 64
-run_test_group $(( $message_count / 2 )) 128
-run_test_group $(( $message_count / 4 )) 256
-run_test_group $(( $message_count / 8 )) 512
-run_test_group $(( $message_count / 16 )) 1024
+run_test_group_3_1()
+{
+    # warm up
+    run_test $1 3 $2 0 none none Produce # get some data in the topic
+    run_test $1 3 $2 0 none none Both # ensure without doubt there is enough data, then consume (from beginning)
+    run_test $1 3 $2 0 none none Consume # consume from beginning again. extra sure in page cache.
+
+    run_test $1 3 $2 1 none none Consume >> results-$client.csv
+    run_test $1 3 $2 1 none none Produce >> results-$client.csv
+}
+
+# use for core test set.
+# run_test_group_core $message_count 64
+# run_test_group_core $(( $message_count / 2 )) 128
+# run_test_group_core $(( $message_count / 4 )) 256
+# run_test_group_core $(( $message_count / 8 )) 512
+# run_test_group_core $(( $message_count / 16 )) 1024
+
+# use for broker 3.2.2 test set.
+run_test_group_3_1 $message_count 64
+run_test_group_3_1 $(( $message_count / 2 )) 128
+run_test_group_3_1 $(( $message_count / 4 )) 256
+run_test_group_3_1 $(( $message_count / 8 )) 512
+run_test_group_3_1 $(( $message_count / 16 )) 1024
+
+
 
 # set message length explicitly, as some client buffer sizes are computed from this.
 # run_test $message_count 1 256 1 gzip none Both
