@@ -65,7 +65,7 @@ if action == 'Produce' or action == 'Both':
         with open('/tmp/urls.10K.txt') as f:
             urls_ = f.readlines()
 
-        for i in range(len(urls_)/urls_per_msg - 1):
+        for i in range(int(len(urls_)/urls_per_msg) - 1):
             msg = ''
             for j in range(urls_per_msg):
                 msg += urls_[i*urls_per_msg + j]

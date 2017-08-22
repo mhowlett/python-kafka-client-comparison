@@ -79,12 +79,12 @@ run_test_group_3_1()
 run_test_group_3_1_compress()
 {
     # warm up
-    run_test $1 3 $2 0 $3 none Produce # get some data in the topic
-    run_test $1 3 $2 0 $3 none Both # ensure without doubt there is enough data, then consume (from beginning)
-    run_test $1 3 $2 0 $3 none Consume # consume from beginning again. extra sure in page cache.
+    run_test $1 1 $2 0 $3 none Produce # get some data in the topic
+    run_test $1 1 $2 0 $3 none Both # ensure without doubt there is enough data, then consume (from beginning)
+    run_test $1 1 $2 0 $3 none Consume # consume from beginning again. extra sure in page cache.
 
-    run_test $1 3 $2 1 $3 none Consume >> results-$client.csv
-    run_test $1 3 $2 1 $3 none Produce >> results-$client.csv
+    run_test $1 1 $2 1 $3 none Consume >> results-$client.csv
+    run_test $1 1 $2 1 $3 none Produce >> results-$client.csv
 }
 
 # use for core test set.
