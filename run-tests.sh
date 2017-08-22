@@ -76,6 +76,17 @@ run_test_group_3_1()
     run_test $1 3 $2 1 none none Produce >> results-$client.csv
 }
 
+run_test_group_3_1_compress()
+{
+    # warm up
+    run_test $1 3 $2 0 $3 none Produce # get some data in the topic
+    run_test $1 3 $2 0 $3 none Both # ensure without doubt there is enough data, then consume (from beginning)
+    run_test $1 3 $2 0 $3 none Consume # consume from beginning again. extra sure in page cache.
+
+    run_test $1 3 $2 1 $3 none Consume >> results-$client.csv
+    run_test $1 3 $2 1 $3 none Produce >> results-$client.csv
+}
+
 # use for core test set.
 # run_test_group_core $message_count 64
 # run_test_group_core $(( $message_count / 2 )) 128
@@ -84,18 +95,26 @@ run_test_group_3_1()
 # run_test_group_core $(( $message_count / 16 )) 1024
 
 # use for broker 3.2.2 test set.
-run_test_group_3_1 $message_count 64
-run_test_group_3_1 $(( $message_count / 2 )) 128
-run_test_group_3_1 $(( $message_count / 4 )) 256
-run_test_group_3_1 $(( $message_count / 8 )) 512
-run_test_group_3_1 $(( $message_count / 16 )) 1024
+# run_test_group_3_1 $message_count 64
+# run_test_group_3_1 $(( $message_count / 2 )) 128
+# run_test_group_3_1 $(( $message_count / 4 )) 256
+# run_test_group_3_1 $(( $message_count / 8 )) 512
+# run_test_group_3_1 $(( $message_count / 16 )) 1024
 
+run_test_group_3_1_compress $message_count 1 gzip
+run_test_group_3_1_compress $message_count 2 gzip
+run_test_group_3_1_compress $message_count 4 gzip
+run_test_group_3_1_compress $message_count 8 gzip
+run_test_group_3_1_compress $message_count 16 gzip
 
+# run_test_group_3_1_compress $message_count 1 snappy
+# run_test_group_3_1_compress $message_count 2 snappy
+# run_test_group_3_1_compress $message_count 4 snappy
+# run_test_group_3_1_compress $message_count 8 snappy
+# run_test_group_3_1_compress $message_count 16 snappy
 
-# set message length explicitly, as some client buffer sizes are computed from this.
-# run_test $message_count 1 256 1 gzip none Both
-# run_test $message_count 1 256 1 gzip none Both >> results-$client.csv
-# run_test $message_count 1 256 1 snappy none Both
-# run_test $message_count 1 256 1 snappy none Both >> results-$client.csv
-# run_test $message_count 1 256 1 lz4 none Both
-# run_test $message_count 1 256 1 lz4 none Both >> results-$client.csv
+# run_test_group_3_1_compress $message_count 1 lz4
+# run_test_group_3_1_compress $message_count 2 lz4
+# run_test_group_3_1_compress $message_count 4 lz4
+# run_test_group_3_1_compress $message_count 8 lz4
+# run_test_group_3_1_compress $message_count 16 lz4

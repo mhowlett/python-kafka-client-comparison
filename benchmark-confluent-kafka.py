@@ -19,7 +19,7 @@ action = sys.argv[8]
 if compression == 'none':
     topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
 else:
-    topic_name = 'test-topic-{0}'.format(compression)
+    topic_name = 'test-topic-{0}-s{1}'.format(compression, message_len)
 
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
@@ -44,8 +44,21 @@ if action == 'Produce' or action == 'Both':
 
     producer = Producer(producerSettings)
 
-    with open('/tmp/urls.10K.txt') as f:
-        urls = f.readlines()
+    urls = []
+    urls_per_msg = message_len
+    if compression != 'none':
+        if urls_per_msg > 16:
+            print('# expected urls_per_msg <= 16. aborting')
+            exit(0)
+
+        with open('/tmp/urls.10K.txt') as f:
+            urls_ = f.readlines()
+
+        for i in range(len(urls_)/urls_per_msg - 1):
+            msg = ''
+            for j in range(urls_per_msg):
+                msg += urls_[i*urls_per_msg + j]
+            urls.append(msg)
 
     message = bytearray()
     for i in range(message_len):

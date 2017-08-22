@@ -154,6 +154,22 @@ create_topic 3 3 p3-r3-s512
 create_topic 1 3 p1-r3-s1024
 create_topic 3 3 p3-r3-s1024
 
-create_topic 1 3 gzip
-create_topic 1 3 snappy
-create_topic 1 3 lz4
+create_topic 1 3 gzip-s1
+create_topic 1 3 snappy-s1
+create_topic 1 3 lz4-s1
+
+create_topic 1 3 gzip-s2
+create_topic 1 3 snappy-s2
+create_topic 1 3 lz4-s2
+
+create_topic 1 3 gzip-s4
+create_topic 1 3 snappy-s4
+create_topic 1 3 lz4-s4
+
+create_topic 1 3 gzip-s8
+create_topic 1 3 snappy-s8
+create_topic 1 3 lz4-s8
+
+create_topic 1 3 gzip-s16
+create_topic 1 3 snappy-s16
+create_topic 1 3 lz4-s16

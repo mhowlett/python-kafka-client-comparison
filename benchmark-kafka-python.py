@@ -20,7 +20,7 @@ if compression == 'none':
     topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
 else:
     compression_conf = compression
-    topic_name = 'test-topic-{0}'.format(compression)
+    topic_name = 'test-topic-{0}-s{1}'.format(compression, message_len)
 
 security = sys.argv[7]
 security_conf = None
@@ -55,8 +55,22 @@ if action == 'Produce' or action == 'Both':
         compression_type = compression_conf
     )
 
-    with open('/tmp/urls.10K.txt') as f:
-        urls = f.readlines()
+    urls = []
+    urls_per_msg = message_len
+    if compression != 'none':
+        if urls_per_msg > 16:
+            print('# expected urls_per_msg <= 16. aborting')
+            exit(0)
+
+        with open('/tmp/urls.10K.txt') as f:
+            urls_ = f.readlines()
+
+        for i in range(len(urls_)/urls_per_msg - 1):
+            msg = ''
+            for j in range(urls_per_msg):
+                msg += urls_[i*urls_per_msg + j]
+            urls.append(msg)
+            
     urls = [bytes(url, 'utf-8') for url in urls]
 
     message = bytearray()

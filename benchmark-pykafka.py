@@ -50,9 +50,9 @@ if compression == 'none':
 
 else:
     if sys.version_info >= (3, 0):
-        topic_name = bytes('test-topic-{0}'.format(compression), 'utf-8')
+        topic_name = bytes('test-topic-{0}-s{1}'.format(compression, message_len), 'utf-8')
     else:
-        topic_name = bytes('test-topic-{0}'.format(compression))
+        topic_name = bytes('test-topic-{0}-s{1}'.format(compression, message_len))
 
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
@@ -62,8 +62,22 @@ if action == 'Produce' or action == 'Both':
 
     # _____ PRODUCE TEST ______
 
-    with open('/tmp/urls.10K.txt') as f:
-        urls = f.readlines()
+    urls = []
+    urls_per_msg = message_len
+    if compression != 'none':
+        if urls_per_msg > 16:
+            print('# expected urls_per_msg <= 16. aborting')
+            exit(0)
+
+        with open('/tmp/urls.10K.txt') as f:
+            urls_ = f.readlines()
+
+        for i in range(len(urls_)/urls_per_msg - 1):
+            msg = ''
+            for j in range(urls_per_msg):
+                msg += urls_[i*urls_per_msg + j]
+            urls.append(msg)
+
     if sys.version_info >= (3, 0):
         urls = [bytes(url, 'utf-8') for url in urls]
     else:
