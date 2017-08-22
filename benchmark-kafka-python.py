@@ -47,12 +47,12 @@ if action == 'Produce' or action == 'Both':
         buffer_memory = 500000 * message_len, # match confluent-kafka setting.
         retries = 0,
         acks = num_acks,
-        linger_ms = 100, # TODO: test effect of this. we're trying to maximise throughput, not concerned with latency.
+        request_timeout_ms = 120000,
+        linger_ms = 50, # TODO: test effect of this. we're trying to maximise throughput, not concerned with latency.
         max_in_flight_requests_per_connection = 1000, # ensure this doesn't constrain.
         security_protocol = security_conf,
         ssl_cafile = ca_file,
         compression_type = compression_conf
-        # batch_size = 16384 (default).
     )
 
     with open('/tmp/urls.10K.txt') as f:
