@@ -8,7 +8,7 @@ from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 
 rdkafka = sys.argv[9] == 'true'
-typecode = 'R' if rdkafka else 'P'
+typecode = 'PykafkaRd' if rdkafka else 'Pykafka'
 
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])

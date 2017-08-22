@@ -34,49 +34,53 @@ run_test()
     fi
 }
 
-compare_group()
-{
-    run_test $1 3 $2 1 none none Produce
-    run_test $1 3 $2 1 none none Produce >> results-$client.csv
-    run_test $1 3 $2 1 none none Consume
-    run_test $1 3 $2 1 none none Consume
-    run_test $1 3 $2 1 none none Consume
-    run_test $1 3 $2 1 none none Consume >> results-$client.csv
-}
-
-compare_group $message_count 64
-compare_group $(( $message_count / 2 )) 128
-compare_group $(( $message_count / 4 )) 256
-compare_group $(( $message_count / 8 )) 512
-compare_group $(( $message_count / 16 )) 1024
-
-
 run_test_group()
 {
-    run_test $1 3 $2 0 none none # warmup
-    run_test $1 3 $2 0 none none >> results-$client.csv
-    run_test $1 3 $2 1 none none >> results-$client.csv
-    run_test $1 3 $2 all none none >> results-$client.csv
-    run_test $1 3 $2 all none SSL >> results-$client.csv
-    run_test $1 1 $2 0 none none # warmup
-    run_test $1 1 $2 0 none none >> results-$client.csv
-    run_test $1 1 $2 1 none none >> results-$client.csv
-    run_test $1 1 $2 all none none >> results-$client.csv
+    # warm up
+    run_test $1 3 $2 0 none none Produce # get some data in the topic
+    run_test $1 3 $2 0 none none Both # ensure without doubt there is enough data, then consume (from beginning)
+    run_test $1 3 $2 0 none none Consume # consume from beginning again. extra sure in page cache.
+
+    run_test $1 3 $2 0 none none Consume >> results-$client.csv
+    run_test $1 3 $2 1 none none Consume >> results-$client.csv
+    run_test $1 3 $2 1 none SSL Consume >> results-$client.csv
+    run_test $1 3 $2 all none none Consume >> results-$client.csv
+    run_test $1 3 $2 all none SSL Consume >> results-$client.csv
+
+    run_test $1 3 $2 0 none none Produce >> results-$client.csv
+    run_test $1 3 $2 1 none none Produce >> results-$client.csv
+    run_test $1 3 $2 1 none SSL Produce >> results-$client.csv
+    run_test $1 3 $2 all none none Produce >> results-$client.csv
+    run_test $1 3 $2 all none SSL Produce >> results-$client.csv
+
+    # warm up
+    run_test $1 1 $2 0 none none Produce
+    run_test $1 1 $2 0 none none Both
+    run_test $1 1 $2 0 none none Consume
+
+    run_test $1 1 $2 0 none none Consume >> results-$client.csv 
+    run_test $1 1 $2 1 none none Consume >> results-$client.csv
+    run_test $1 1 $2 1 none SSL Consume >> results-$client.csv
+    run_test $1 1 $2 all none none Consume >> results-$client.csv
+    run_test $1 1 $2 all none SSL Consume >> results-$client.csv
+
+    run_test $1 1 $2 0 none none Produce >> results-$client.csv 
+    run_test $1 1 $2 1 none none Produce >> results-$client.csv
+    run_test $1 1 $2 1 none SSL Produce >> results-$client.csv
+    run_test $1 1 $2 all none none Produce >> results-$client.csv
+    run_test $1 1 $2 all none SSL Produce >> results-$client.csv
 }
 
-do_old()
-{
-    run_test_group $message_count 64
-    run_test_group $(( $message_count / 2 )) 128
-    run_test_group $(( $message_count / 4 )) 256
-    run_test_group $(( $message_count / 8 )) 512
-    run_test_group $(( $message_count / 16 )) 1024
+run_test_group $message_count 64
+run_test_group $(( $message_count / 2 )) 128
+run_test_group $(( $message_count / 4 )) 256
+run_test_group $(( $message_count / 8 )) 512
+run_test_group $(( $message_count / 16 )) 1024
 
-    # set message length explicitly, as some client buffer sizes are computed from this.
-    run_test $message_count 1 256 1 gzip none
-    run_test $message_count 1 256 1 gzip none >> results-$client.csv
-    run_test $message_count 1 256 1 snappy none
-    run_test $message_count 1 256 1 snappy none >> results-$client.csv
-    run_test $message_count 1 256 1 lz4 none
-    run_test $message_count 1 256 1 lz4 none >> results-$client.csv
-}
+# set message length explicitly, as some client buffer sizes are computed from this.
+# run_test $message_count 1 256 1 gzip none Both
+# run_test $message_count 1 256 1 gzip none Both >> results-$client.csv
+# run_test $message_count 1 256 1 snappy none Both
+# run_test $message_count 1 256 1 snappy none Both >> results-$client.csv
+# run_test $message_count 1 256 1 lz4 none Both
+# run_test $message_count 1 256 1 lz4 none Both >> results-$client.csv

@@ -76,8 +76,13 @@ echo "deploy zookeper and kafka"
 
 eval $(docker-machine env ${prefix}-1)
 
-docker-machine ssh ${prefix}-1 sudo mkfs.ext4 -F /dev/xvdc
-docker-machine ssh ${prefix}-1 sudo mount -t ext4 /dev/xvdc /mnt
+# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/raid-config.html
+
+# raid 0 (striped)
+docker-machine ssh ${prefix}-1 sudo mdadm --create --verbose /dev/md0 --level=0 --name=MY_RAID --raid-devices=2 /dev/xvdb /dev/xvdc
+sleep 5 
+docker-machine ssh ${prefix}-1 sudo mkfs.ext4 -F -L MY_RAID /dev/md0
+docker-machine ssh ${prefix}-1 sudo mount LABEL=MY_RAID /mnt
 
 docker run -d \
     --net=host \
@@ -90,8 +95,10 @@ start_broker()
 {
     eval $(docker-machine env ${prefix}-$1)
 
-    docker-machine ssh ${prefix}-$1 sudo mkfs.ext4 -F /dev/xvdc
-    docker-machine ssh ${prefix}-$1 sudo mount -t ext4 /dev/xvdc /mnt
+    docker-machine ssh ${prefix}-$1 sudo mdadm --create --verbose /dev/md0 --level=0 --name=MY_RAID --raid-devices=2 /dev/xvdb /dev/xvdc
+    sleep 5 
+    docker-machine ssh ${prefix}-$1 sudo mkfs.ext4 -F -L MY_RAID /dev/md0
+    docker-machine ssh ${prefix}-$1 sudo mount LABEL=MY_RAID /mnt
 
     docker run -d \
         --net=host \

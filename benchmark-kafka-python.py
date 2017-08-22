@@ -182,4 +182,3 @@ if action == 'Consume' or action == 'Both':
             elapsed, 
             num_messages/elapsed, 
             mb_per_s))
-
