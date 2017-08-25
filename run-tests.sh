@@ -30,6 +30,7 @@ run_test()
         docker exec python-env sh -c "$cmd"
     else
         cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7"
+        echo $cmd
         docker exec python-env sh -c "$cmd"
     fi
 }
@@ -93,16 +94,16 @@ run_test_group_3_1_compress()
     run_test $1 1 $2 1 $3 none Produce >> results-$client.csv
 }
 
-run_test()
+run_test_core()
 {
-  run_test_group_core $duration 64
-  run_test_group_core $duration 128
-  run_test_group_core $duration 256
-  run_test_group_core $duration 512
-  run_test_group_core $duration 1024
+  run_test_group $duration 64
+  run_test_group $duration 128
+  run_test_group $duration 256
+  run_test_group $duration 512
+  run_test_group $duration 1024
 }
 
-run_test()
+run_test_core
 
 # use for core test set.
 # run_test_group_core $duration 64
@@ -124,11 +125,11 @@ run_test()
 # run_test_group_3_1_compress $duration 8 gzip
 # run_test_group_3_1_compress $duration 16 gzip
 
-run_test_group_3_1_compress $duration 1 snappy
-run_test_group_3_1_compress $duration 2 snappy
-run_test_group_3_1_compress $duration 4 snappy
-run_test_group_3_1_compress $duration 8 snappy
-run_test_group_3_1_compress $duration 16 snappy
+#run_test_group_3_1_compress $duration 1 snappy
+#run_test_group_3_1_compress $duration 2 snappy
+#run_test_group_3_1_compress $duration 4 snappy
+#run_test_group_3_1_compress $duration 8 snappy
+#run_test_group_3_1_compress $duration 16 snappy
 
 # run_test_group_3_1_compress $duration 1 lz4
 # run_test_group_3_1_compress $duration 2 lz4
