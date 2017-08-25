@@ -48,43 +48,30 @@ if action == 'Produce' or action == 'Both':
     messages = [] if compression == 'none' else benchmark_utils.make_url_messages(urls_per_msg = message_len)
     message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
 
-    done = False
     url_cnt = 0
     total_size = 0
-    warmup_cnt = 0
     success_count = 0
     error_count = 0
+    start_time = 0
 
     def warmup_acked(err, msg):
-        global done, warmup_cnt
-
-        warmup_cnt += 1
-        if warmup_cnt > 10:
-            done = True
-
+        pass
 
     def acked(err, msg):
-        global done, success_count, error_count
-
-        if timeit.default_timer() - start_time > duration:
-            done = True
-        
-        if done:
-            return
-
+        global success_count, error_count
         if err is None:
             success_count += 1
         else:
             error_count += 1
         
-
     def loop(max_num, acked_cb):
-        global done, url_cnt, total_size
+        global url_cnt, total_size
 
         i = 0
         while True:
+
             i += 1
-            if i >= max_num or done:
+            if i >= max_num or timeit.default_timer() - start_time > duration:
                 break
 
             while True:
@@ -93,7 +80,6 @@ if action == 'Produce' or action == 'Both':
                     if compression == 'none':
                         producer.produce(topic_name, message, callback=acked_cb)
                     else:
-                        print(i)
                         producer.produce(topic_name, messages[url_cnt], callback=acked_cb)
                         total_size += len(messages[url_cnt]) # O(1)
                         url_cnt += 1
@@ -109,20 +95,18 @@ if action == 'Produce' or action == 'Both':
         producer.flush()
 
     # warmup
-    done = False
-    warmup_cnt = 0
     loop(10, warmup_acked)
 
-    done = False
     success_count = 0
     error_count = 0
     start_time = timeit.default_timer()
     loop(10000000000, acked)
+    elapsed = timeit.default_timer() - start_time
 
     num_messages = success_count + error_count
-    mb_per_s = num_messages/duration*message_len/1048576
+    mb_per_s = num_messages/elapsed*message_len/1048576
     if compression != 'none':
-        mb_per_s = total_size/duration/1048576
+        mb_per_s = total_size/elapsed/1048576
 
     size = message_len
     if compression != 'none':
@@ -138,8 +122,8 @@ if action == 'Produce' or action == 'Both':
                 num_acks, 
                 compression,
                 security,
-                duration, 
-                num_messages/duration,
+                elapsed, 
+                num_messages/elapsed,
                 mb_per_s))
     else:
         print('# success: {}, # error: {}'.format(success_count, error_count))
