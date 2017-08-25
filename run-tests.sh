@@ -30,7 +30,6 @@ run_test()
         docker exec python-env sh -c "$cmd"
     else
         cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7"
-        echo $cmd
         docker exec python-env sh -c "$cmd"
     fi
 }

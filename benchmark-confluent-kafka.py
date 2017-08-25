@@ -188,6 +188,8 @@ if action == 'Consume' or action == 'Both':
         # if end of partition reached this might not be == duration.
         elapsed = timeit.default_timer() - start_time
 
+        num_messages = success_count + error_count
+        
         mb_per_s = num_messages/elapsed*message_len/1048576
         if compression != 'none':
             mb_per_s = total_size/elapsed/1048576
