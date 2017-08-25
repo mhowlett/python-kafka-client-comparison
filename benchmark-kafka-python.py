@@ -5,9 +5,10 @@ import uuid
 import os
 from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
+import benchmark_utils
 
 bootstrap_servers = sys.argv[1] + ':29092'
-num_messages = int(sys.argv[2])
+duration = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = sys.argv[5]
@@ -55,28 +56,8 @@ if action == 'Produce' or action == 'Both':
         compression_type = compression_conf
     )
 
-    urls = []
-    urls_per_msg = message_len
-    if compression != 'none':
-        if urls_per_msg > 16:
-            print('# expected urls_per_msg <= 16. aborting')
-            exit(0)
-
-        with open('/tmp/urls.10K.txt') as f:
-            urls_ = f.readlines()
-
-        for i in range(int(len(urls_)/urls_per_msg) - 1):
-            msg = ''
-            for j in range(urls_per_msg):
-                msg += urls_[i*urls_per_msg + j]
-            urls.append(msg)
-            
-    urls = [bytes(url, 'utf-8') for url in urls]
-
-    message = bytearray()
-    for i in range(message_len):
-        message.extend([48 + i%10])
-    message = bytes(message)
+    messages = [] if compression == 'none' else benchmark_utils.make_url_messages(urls_per_msg = message_len)
+    message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
 
     # warm up.
     for _ in range(num_partitions):
@@ -89,33 +70,41 @@ if action == 'Produce' or action == 'Both':
     success_count = 0
     total_size = 0
 
-    if num_acks != 0:
+    if True: #num_acks != 0:
         futures = []
-        for _ in range(num_messages):
+        while True:
             if compression == 'none':
                 futures.append(producer.send(topic_name, message))
             else:
-                futures.append(producer.send(topic_name, urls[url_cnt]))
-                total_size += len(urls[url_cnt])
+                futures.append(producer.send(topic_name, messages[url_cnt]))
+                total_size += len(messages[url_cnt])
                 url_cnt += 1
-                if url_cnt >= len(urls):
+                if url_cnt >= len(messages):
                     url_cnt = 0
+            if timeit.default_timer() - start_time > duration:
+                break
 
+        start_wait = timeit.default_timer()
         for f in futures:
-            dr = f.get(60)
-            # will throw an exception if error. todo: check specifics
-            success_count += 1
+            try:
+                dr = f.get(0)
+                success_count += 1
+            except:
+                pass
 
-    else:
-        for _ in range(num_messages):
-            if compression == 'none':
-                producer.send(topic_name, message)
-            else:
-                producer.send(topic_name, urls[url_cnt])
-                total_size += len(urls[url_cnt]) # O(1)
-                url_cnt += 1
-                if url_cnt >= len(urls):
-                    url_cnt = 0
+        wait_total = timeit.default_timer() - start_wait
+        print("total wait time {}".format(wait_total))
+
+#    else:
+#        for _ in range(num_messages):
+#            if compression == 'none':
+#                producer.send(topic_name, message)
+#            else:
+#                producer.send(topic_name, messages[url_cnt])
+#                total_size += len(messages[url_cnt]) # O(1)
+#                url_cnt += 1
+#                if url_cnt >= len(messages):
+#                    url_cnt = 0
 
         producer.flush()
         success_count = num_messages

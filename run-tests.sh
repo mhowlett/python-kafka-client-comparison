@@ -1,14 +1,14 @@
 #!/bin/bash
 
 if [ "$#" -ne 4 ]; then
-    echo "usage: $0 <machine-prefix> <confluent-version-number> <client> <message-count>"
+    echo "usage: $0 <machine-prefix> <confluent-version-number> <client> <duration (s)>"
     exit 1
 fi
 
 prefix=$1
 confluent_version=$2
 client=$3
-message_count=$4
+duration=$4
 
 eval $(docker-machine env ${prefix}-1)
 
@@ -34,11 +34,14 @@ run_test()
     fi
 }
 
-run_test_group_core()
+run_test_group()
 {
     # warm up
-    run_test $1 3 $2 0 none none Produce # get some data in the topic
-    run_test $1 3 $2 0 none none Both # ensure without doubt there is enough data, then consume (from beginning)
+    run_test $1 3 $2 0 none none Produce # produce more than consume, becasue production usually faster.
+    run_test $1 3 $2 0 none none Produce
+    run_test $1 3 $2 0 none none Produce
+    run_test $1 3 $2 0 none none Produce
+    run_test $1 3 $2 0 none none Consume
     run_test $1 3 $2 0 none none Consume # consume from beginning again. extra sure in page cache.
 
     run_test $1 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
@@ -52,7 +55,10 @@ run_test_group_core()
 
     # warm up
     run_test $1 1 $2 0 none none Produce
-    run_test $1 1 $2 0 none none Both
+    run_test $1 1 $2 0 none none Produce
+    run_test $1 1 $2 0 none none Produce
+    run_test $1 1 $2 0 none none Produce
+    run_test $1 1 $2 0 none none Consume
     run_test $1 1 $2 0 none none Consume
 
     run_test $1 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
@@ -87,34 +93,45 @@ run_test_group_3_1_compress()
     run_test $1 1 $2 1 $3 none Produce >> results-$client.csv
 }
 
+run_test()
+{
+  run_test_group_core $duration 64
+  run_test_group_core $duration 128
+  run_test_group_core $duration 256
+  run_test_group_core $duration 512
+  run_test_group_core $duration 1024
+}
+
+run_test()
+
 # use for core test set.
-# run_test_group_core $message_count 64
-# run_test_group_core $(( $message_count / 2 )) 128
-# run_test_group_core $(( $message_count / 4 )) 256
-# run_test_group_core $(( $message_count / 8 )) 512
-# run_test_group_core $(( $message_count / 16 )) 1024
+# run_test_group_core $duration 64
+# run_test_group_core $duration 128
+# run_test_group_core $duration 256
+# run_test_group_core $duration 512
+# run_test_group_core $duration 1024
 
 # use for broker 3.2.2 test set.
-# run_test_group_3_1 $message_count 64
-# run_test_group_3_1 $(( $message_count / 2 )) 128
-# run_test_group_3_1 $(( $message_count / 4 )) 256
-# run_test_group_3_1 $(( $message_count / 8 )) 512
-# run_test_group_3_1 $(( $message_count / 16 )) 1024
+# run_test_group_3_1 $duration 64
+# run_test_group_3_1 $duration 128
+# run_test_group_3_1 $duration 256
+# run_test_group_3_1 $duration 512
+# run_test_group_3_1 $duration 1024
 
-run_test_group_3_1_compress $message_count 1 gzip
-run_test_group_3_1_compress $message_count 2 gzip
-run_test_group_3_1_compress $message_count 4 gzip
-run_test_group_3_1_compress $message_count 8 gzip
-run_test_group_3_1_compress $message_count 16 gzip
+# run_test_group_3_1_compress $duration 1 gzip
+# run_test_group_3_1_compress $duration 2 gzip
+# run_test_group_3_1_compress $duration 4 gzip
+# run_test_group_3_1_compress $duration 8 gzip
+# run_test_group_3_1_compress $duration 16 gzip
 
-# run_test_group_3_1_compress $message_count 1 snappy
-# run_test_group_3_1_compress $message_count 2 snappy
-# run_test_group_3_1_compress $message_count 4 snappy
-# run_test_group_3_1_compress $message_count 8 snappy
-# run_test_group_3_1_compress $message_count 16 snappy
+run_test_group_3_1_compress $duration 1 snappy
+run_test_group_3_1_compress $duration 2 snappy
+run_test_group_3_1_compress $duration 4 snappy
+run_test_group_3_1_compress $duration 8 snappy
+run_test_group_3_1_compress $duration 16 snappy
 
-# run_test_group_3_1_compress $message_count 1 lz4
-# run_test_group_3_1_compress $message_count 2 lz4
-# run_test_group_3_1_compress $message_count 4 lz4
-# run_test_group_3_1_compress $message_count 8 lz4
-# run_test_group_3_1_compress $message_count 16 lz4
+# run_test_group_3_1_compress $duration 1 lz4
+# run_test_group_3_1_compress $duration 2 lz4
+# run_test_group_3_1_compress $duration 4 lz4
+# run_test_group_3_1_compress $duration 8 lz4
+# run_test_group_3_1_compress $duration 16 lz4

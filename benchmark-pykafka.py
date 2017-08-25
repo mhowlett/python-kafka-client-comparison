@@ -6,9 +6,10 @@ from pykafka import KafkaClient
 from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
+import benchmark_utils
 
 rdkafka = sys.argv[9] == 'true'
-typecode = 'PykafkaRd' if rdkafka else 'Pykafka'
+client_name = 'PykafkaRd' if rdkafka else 'Pykafka'
 
 bootstrap_server = sys.argv[1] + ':29092'
 num_messages = int(sys.argv[2])
@@ -17,7 +18,7 @@ message_len = int(sys.argv[4])
 num_acks = 0
 if sys.argv[5] == 'all':
     if not rdkafka:
-        print('# acks=all does not work with rdkafka=False')
+        print('# acks=all not working with rdkafka=False')
         exit(0)
     num_acks = 3
 else:
@@ -41,7 +42,6 @@ if security == 'SSL':
 
 action = sys.argv[8]
 
-
 if compression == 'none':
     if sys.version_info >= (3, 0):
         topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
@@ -62,35 +62,11 @@ if action == 'Produce' or action == 'Both':
 
     # _____ PRODUCE TEST ______
 
-    urls = []
-    urls_per_msg = message_len
-    if compression != 'none':
-        if urls_per_msg > 16:
-            print('# expected urls_per_msg <= 16. aborting')
-            exit(0)
-
-        with open('/tmp/urls.10K.txt') as f:
-            urls_ = f.readlines()
-
-        for i in range(int(len(urls_)/urls_per_msg) - 1):
-            msg = ''
-            for j in range(urls_per_msg):
-                msg += urls_[i*urls_per_msg + j]
-            urls.append(msg)
-
-    if sys.version_info >= (3, 0):
-        urls = [bytes(url, 'utf-8') for url in urls]
-    else:
-        urls = [bytes(url) for url in urls]
-
-    message = bytearray()
-    for i in range(message_len):
-        message.extend([48 + i%10])
-    message = bytes(message)
+    messages = [] if compression == 'none' else benchmark_utils.make_url_messages(urls_per_msg = message_len)
+    message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
 
     client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
     topic = client.topics[topic_name]
-
 
     if compression_conf != None:
         producer = topic.get_producer(
@@ -137,10 +113,10 @@ if action == 'Produce' or action == 'Both':
                     if compression == 'none':
                         producer.produce(message)
                     else:
-                        producer.produce(urls[url_cnt])
-                        total_size += len(urls[url_cnt])
+                        producer.produce(messages[url_cnt])
+                        total_size += len(messages[url_cnt])
                         url_cnt += 1
-                        if url_cnt >= len(urls):
+                        if url_cnt >= len(messages):
                             url_cnt = 0
                     break
                 except ProducerQueueFullError:
@@ -188,7 +164,7 @@ if action == 'Produce' or action == 'Both':
                     elapsed, 
                     num_messages/elapsed,
                     mb_per_s,
-                    typecode))
+                    client_name))
         else:
             print('# success: {}, # error: {}'.format(success_count, error_count))
 
@@ -248,7 +224,7 @@ if action == 'Consume' or action == 'Both':
                 elapsed, 
                 num_messages/elapsed, 
                 mb_per_s,
-                typecode))
+                client_name))
     else:
         print('# success: {}, # error: {}'.format(success_count, error_count))
 
