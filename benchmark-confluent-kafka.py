@@ -22,6 +22,8 @@ if compression == 'none':
 else:
     topic_name = 'test-topic-{0}-s{1}'.format(compression, message_len)
 
+produce_warmup_count = 20
+
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
 
@@ -95,7 +97,7 @@ if action == 'Produce' or action == 'Both':
         producer.flush()
 
     # warmup
-    loop(10, warmup_acked)
+    loop(produce_warmup_count, warmup_acked)
 
     success_count = 0
     error_count = 0
@@ -189,7 +191,7 @@ if action == 'Consume' or action == 'Both':
         elapsed = timeit.default_timer() - start_time
 
         num_messages = success_count + error_count
-        
+
         mb_per_s = num_messages/elapsed*message_len/1048576
         if compression != 'none':
             mb_per_s = total_size/elapsed/1048576

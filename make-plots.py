@@ -4,6 +4,7 @@ from collections import namedtuple
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+import os.path
 
 DataKey = namedtuple(
   "DataKey",
@@ -19,6 +20,9 @@ PlotKey = namedtuple(
 
 
 def read_data(filename):
+    if not os.path.exists(filename):
+        return ''
+
     data = {}
     with open(filename, newline="") as f:
         reader = csv.reader(f)
@@ -279,6 +283,9 @@ def make_plot_p_comparison(data):
 
     key = ('1', '3')
     for i in range(len(data)):
+        if not key in data[i][0]:
+            continue
+        
         mbs = data[i][0][key]
         msgs = data[i][1][key]
 
@@ -320,6 +327,8 @@ def make_plot_c_comparison(data):
 
     key = ('3', )
     for i in range(len(data)):
+        if not key in data[i][0]:
+            continue
         mbs = data[i][0][key]
         msgs = data[i][1][key]
 

@@ -35,6 +35,8 @@ if security == 'none':
 
 action = sys.argv[8]
 
+produce_warmup_count = 20
+
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
 
@@ -60,7 +62,7 @@ if action == 'Produce' or action == 'Both':
     message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
 
     # warm up.
-    for _ in range(num_partitions):
+    for _ in range(produce_warmup_count):
         future = producer.send(topic_name, message)
         result = future.get(timeout=60)
 
@@ -70,7 +72,7 @@ if action == 'Produce' or action == 'Both':
     success_count = 0
     total_size = 0
 
-    if True: #num_acks != 0:
+    if num_acks != 0:
         futures = []
         while True:
             if compression == 'none':
@@ -81,30 +83,30 @@ if action == 'Produce' or action == 'Both':
                 url_cnt += 1
                 if url_cnt >= len(messages):
                     url_cnt = 0
+
             if timeit.default_timer() - start_time > duration:
                 break
 
-        start_wait = timeit.default_timer()
         for f in futures:
             try:
-                dr = f.get(0)
+                dr = f.get(60)
                 success_count += 1
             except:
                 pass
 
-        wait_total = timeit.default_timer() - start_wait
-        print("total wait time {}".format(wait_total))
+    else:
+        while True:
+            if compression == 'none':
+                producer.send(topic_name, message)
+            else:
+                producer.send(topic_name, messages[url_cnt])
+                total_size += len(messages[url_cnt]) # O(1)
+                url_cnt += 1
+                if url_cnt >= len(messages):
+                    url_cnt = 0
 
-#    else:
-#        for _ in range(num_messages):
-#            if compression == 'none':
-#                producer.send(topic_name, message)
-#            else:
-#                producer.send(topic_name, messages[url_cnt])
-#                total_size += len(messages[url_cnt]) # O(1)
-#                url_cnt += 1
-#                if url_cnt >= len(messages):
-#                    url_cnt = 0
+            if timeit.default_timer() - start_time > duration:
+                break
 
         producer.flush()
         success_count = num_messages
@@ -133,7 +135,6 @@ if action == 'Produce' or action == 'Both':
             mb_per_s))
 
 
-
 if action == 'Consume' or action == 'Both':
     # _____ CONSUME TEST ______
 
@@ -160,8 +161,8 @@ if action == 'Consume' or action == 'Both':
         if compression != 'none':
             total_size += len(msg.value)
         success_count += 1
-        # there is no error in consumed messages.
-        if (success_count >= num_messages):
+        
+        if timeit.default_timer() - start_time > duration:
             break
 
     elapsed = timeit.default_timer() - start_time

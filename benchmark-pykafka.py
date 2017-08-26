@@ -12,7 +12,7 @@ rdkafka = sys.argv[9] == 'true'
 client_name = 'PykafkaRd' if rdkafka else 'Pykafka'
 
 bootstrap_server = sys.argv[1] + ':29092'
-num_messages = int(sys.argv[2])
+duration = int(sys.argv[2])
 num_partitions = int(sys.argv[3])
 message_len = int(sys.argv[4])
 num_acks = 0
@@ -41,6 +41,8 @@ if security == 'SSL':
     bootstrap_server = sys.argv[1] + ':29093'
 
 action = sys.argv[8]
+
+produce_warmup_count = 20
 
 if compression == 'none':
     if sys.version_info >= (3, 0):
@@ -89,7 +91,7 @@ if action == 'Produce' or action == 'Both':
     with producer:
 
         # warm-up.
-        for _ in range(num_partitions):
+        for _ in range(produce_warmup_count):
             producer.produce(message)
             if num_acks != 0:
                 msg, err = producer.get_delivery_report(block=True)
