@@ -18,7 +18,7 @@ if num_acks != 'all':
 compression = sys.argv[6]
 compression_conf = None
 if compression == 'none':
-    topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
+    topic_name = 'test-topic-p{0}-r1-s{1}'.format(num_partitions, message_len)
 else:
     compression_conf = compression
     topic_name = 'test-topic-{0}-s{1}'.format(compression, message_len)
@@ -105,14 +105,17 @@ if action == 'Produce' or action == 'Both':
                 if url_cnt >= len(messages):
                     url_cnt = 0
 
+            success_count += 1
+
             if timeit.default_timer() - start_time > duration:
                 break
 
         producer.flush()
-        success_count = num_messages
+        success_count = success_count
 
     elapsed = timeit.default_timer() - start_time
 
+    num_messages = success_count
     mb_per_s = num_messages/elapsed*message_len/1048576
     if compression != 'none':
         mb_per_s = total_size/elapsed/1048576
@@ -167,6 +170,8 @@ if action == 'Consume' or action == 'Both':
 
     elapsed = timeit.default_timer() - start_time
 
+    num_messages = success_count
+    
     mb_per_s = num_messages/elapsed*message_len/1048576
     if compression != 'none':
         mb_per_s = total_size/elapsed/1048576

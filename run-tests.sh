@@ -50,8 +50,10 @@ run_test_group()
     run_test $1 3 $2 0 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none SSL Produce >> results-$client.csv
-    run_test $1 3 $2 all none none Produce >> results-$client.csv
-    run_test $1 3 $2 all none SSL Produce >> results-$client.csv
+
+    # no longer using replicated topics as broker is bottleneck.
+    # run_test $1 3 $2 all none none Produce >> results-$client.csv
+    # run_test $1 3 $2 all none SSL Produce >> results-$client.csv
 
     # warm up
     run_test $1 1 $2 0 none none Produce
@@ -67,8 +69,10 @@ run_test_group()
     run_test $1 1 $2 0 none none Produce >> results-$client.csv 
     run_test $1 1 $2 1 none none Produce >> results-$client.csv
     run_test $1 1 $2 1 none SSL Produce >> results-$client.csv
-    run_test $1 1 $2 all none none Produce >> results-$client.csv
-    run_test $1 1 $2 all none SSL Produce >> results-$client.csv
+
+    # no longer using replicated topics as broker is bottleneck.
+    # run_test $1 1 $2 all none none Produce >> results-$client.csv
+    # run_test $1 1 $2 all none SSL Produce >> results-$client.csv
 }
 
 run_test_group_3_1()

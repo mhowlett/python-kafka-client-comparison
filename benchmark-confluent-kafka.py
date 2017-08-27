@@ -18,7 +18,7 @@ if security == 'SSL':
 action = sys.argv[8]
 
 if compression == 'none':
-    topic_name = 'test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len)
+    topic_name = 'test-topic-p{0}-r1-s{1}'.format(num_partitions, message_len)
 else:
     topic_name = 'test-topic-{0}-s{1}'.format(compression, message_len)
 

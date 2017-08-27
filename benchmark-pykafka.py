@@ -46,9 +46,9 @@ produce_warmup_count = 20
 
 if compression == 'none':
     if sys.version_info >= (3, 0):
-        topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len), 'utf-8')
+        topic_name = bytes('test-topic-p{0}-r1-s{1}'.format(num_partitions, message_len), 'utf-8')
     else:
-        topic_name = bytes('test-topic-p{0}-r3-s{1}'.format(num_partitions, message_len))
+        topic_name = bytes('test-topic-p{0}-r1-s{1}'.format(num_partitions, message_len))
 
 else:
     if sys.version_info >= (3, 0):
@@ -77,27 +77,24 @@ if action == 'Produce' or action == 'Both':
             linger_ms = 50,
             required_acks = num_acks,
             max_queued_messages = 500000,
-            compression = compression_conf
-        )
+            compression = compression_conf)
     else:
         producer = topic.get_producer(
             delivery_reports = (False if num_acks == 0 else True), 
             use_rdkafka = rdkafka,
             linger_ms = 50,
             required_acks = num_acks,
-            max_queued_messages = 500000
-        )
+            max_queued_messages = 500000)
 
     with producer:
 
-        # warm-up.
+        # warm-up, in case this makes a difference.
         for _ in range(produce_warmup_count):
             producer.produce(message)
             if num_acks != 0:
                 msg, err = producer.get_delivery_report(block=True)
                 if err is not None:
                     print('# Error occured producing warm-up message.')
-
         if num_acks == 0:
             time.sleep(5)
 
@@ -106,10 +103,14 @@ if action == 'Produce' or action == 'Both':
         dr_count = 0
         url_cnt = 0
         total_size = 0
+        sent_count = 0
 
         start_time = timeit.default_timer()
-        
-        for _ in range(num_messages):
+
+        while True:
+            if timeit.default_timer() - start_time > duration:
+                break
+
             while True:
                 try:
                     if compression == 'none':
@@ -120,6 +121,7 @@ if action == 'Produce' or action == 'Both':
                         url_cnt += 1
                         if url_cnt >= len(messages):
                             url_cnt = 0
+                    sent_count += 1
                     break
                 except ProducerQueueFullError:
                     if num_acks != 0:
@@ -131,20 +133,25 @@ if action == 'Produce' or action == 'Both':
                             success_count += 1
                     else:
                         time.sleep(0.01)
-        
+
         if num_acks != 0:
             print ('# delivery reports handled during produce: {}'.format(dr_count))
-            for _ in range(dr_count, num_messages):
+            i = sent_count - dr_count
+            while i > 0:
                 msg, err = producer.get_delivery_report(block=True, timeout=10)
                 if err is not None:
                     error_count += 1
                 else:
                     success_count += 1
+                i -= 1
         else:
+            success_count = sent_count
             producer.stop() # Flushes all messages.
 
         elapsed = timeit.default_timer() - start_time
 
+        num_messages = success_count + error_count
+        
         mb_per_s = num_messages/elapsed*message_len/1048576
         if compression != 'none':
             mb_per_s = total_size/elapsed/1048576
@@ -180,7 +187,7 @@ if action == 'Consume' or action == 'Both':
     client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
     topic = client.topics[topic_name]
 
-    consumer = topic.get_simple_consumer(use_rdkafka = rdkafka)
+    consumer = topic.get_simple_consumer(use_rdkafka=rdkafka, auto_commit_enable=False)
 
     success_count = 0
     error_count = 0
