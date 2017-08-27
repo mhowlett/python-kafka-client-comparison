@@ -208,10 +208,12 @@ if action == 'Consume' or action == 'Both':
         if compression != 'none':
             total_size += len(msg.value)
 
-        if success_count + error_count >= num_messages:
+        if timeit.default_timer() - start_time > duration:
             break
 
     elapsed = timeit.default_timer() - start_time
+
+    num_messages = success_count + error_count
 
     mb_per_s = num_messages/elapsed*message_len/1048576
     if compression != 'none':

@@ -24,7 +24,7 @@ public class Program {
   public static void Produce(
       String bootstrapServer,
       int messageLength,
-      int messageCount,
+      int durationSeconds,
       String acks,
       int partitionCount,
       int linger
@@ -45,7 +45,7 @@ public class Program {
       message[i] = (byte)(48 + i % 10);
     }
 
-    String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
+    String topicName = "test-topic-p" + partitionCount + "-r1" + "-s" + messageLength;
 
     Callback cb = new Callback() {
       public void onCompletion(RecordMetadata metadata, Exception e) {
@@ -101,7 +101,7 @@ public class Program {
 
   public static void Consume(
       String bootstrapServer,
-      int messageCount,
+      int durationSeconds,
       int messageLength,
       int partitionCount
   ) {
@@ -115,22 +115,22 @@ public class Program {
     props.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
     KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(props);
 
-    String topicName = "test-topic-p" + partitionCount + "-r3" + "-s" + messageLength;
+    String topicName = "test-topic-p" + partitionCount + "-r1" + "-s" + messageLength;
 
     int successCount = 0;
 
     consumer.subscribe(Arrays.asList(topicName));
+
+    startTime = startTime = System.currentTimeMillis();
+
     while (true) {
       ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
       boolean done = false;
       for (ConsumerRecord<byte[], byte[]> record : records) {
-        if (successCount == 0) {
-          startTime = System.currentTimeMillis();
-        }
         successCount += 1;
-        if (successCount > messageCount) {
-          done = true;
-          break;
+        if (System.currentTimeMillis() - startTime > durationSeconds * 1000) {
+            done = true;
+            break;
         }
       }
       if (done) {
@@ -149,11 +149,11 @@ public class Program {
         version + ", " +
         partitionCount + ", " +
         messageLength + ", " +
-        messageCount + ", " +
+        successCount + ", " +
         "-, none, none, " +
         String.format("%.1f", ((double)timeMs / 1000.0)) + ", " +
-        String.format("%.0f", ((double)messageCount / ((double)timeMs/1000.0))) + ", " +
-        String.format("%.2f", ((double)messageCount / ((double)timeMs/1000.0)) * messageLength /
+        String.format("%.0f", ((double)successCount / ((double)timeMs/1000.0))) + ", " +
+        String.format("%.2f", ((double)successCount / ((double)timeMs/1000.0)) * messageLength /
                               1048576.0)
     );
   }
@@ -161,7 +161,7 @@ public class Program {
   public static void main(String[] args) {
 
     String bootstrapServer = args[0];
-    int messageCount = Integer.parseInt(args[1]);
+    int durationSeconds = Integer.parseInt(args[1]);
     int partitionCount = Integer.parseInt(args[2]);
     int messageLength = Integer.parseInt(args[3]);
     String numAcks = args[4];
@@ -179,7 +179,7 @@ public class Program {
       Produce(
         bootstrapServer,
         messageLength,
-        messageCount,
+        durationSeconds,
         numAcks,
         partitionCount,
         linger
@@ -190,7 +190,7 @@ public class Program {
     {
       Consume(
           bootstrapServer,
-          messageCount,
+          durationSeconds,
           messageLength,
           partitionCount
       );
