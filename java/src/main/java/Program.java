@@ -58,7 +58,10 @@ public class Program {
     int produceWarmupCount = 20;
     for (int i=0; i<produceWarmupCount; ++i) {
       try {
-          producer.send(record).wait();
+          java.util.concurrent.Future<RecordMetadata> future = producer.send(record);
+          synchronized (future) {
+            future.wait();
+          }
       } catch (InterruptedException e) {
           System.out.println("# interruped warming up.");
           return;
