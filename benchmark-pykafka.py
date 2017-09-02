@@ -7,6 +7,7 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 from benchmark_utils import one_mb, make_url_messages, make_test_message
+from Queue import Queue, Empty
 
 rdkafka = sys.argv[9] == 'true'
 client_name = 'PykafkaRd' if rdkafka else 'Pykafka'
@@ -125,12 +126,15 @@ if action == 'Produce' or action == 'Both':
                     break
                 except ProducerQueueFullError:
                     if num_acks != 0:
-                        msg, err = producer.get_delivery_report(block=False)
-                        dr_count += 1
-                        if err is not None:
-                            error_count += 1
-                        else:
-                            success_count += 1
+                        try:
+                            msg, err = producer.get_delivery_report(block=False)
+                            dr_count += 1
+                            if err is not None:
+                                error_count += 1
+                            else:
+                                success_count += 1
+                        except Empty:
+                            time.sleep(0.01)
                     else:
                         time.sleep(0.01)
 
@@ -187,7 +191,7 @@ if action == 'Consume' or action == 'Both':
     client = KafkaClient(
         hosts=bootstrap_server,
         ssl_config=security_conf)
-        
+
     topic = client.topics[topic_name]
 
     consumer = topic.get_simple_consumer(
