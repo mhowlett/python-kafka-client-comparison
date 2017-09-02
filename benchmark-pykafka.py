@@ -7,7 +7,7 @@ from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
 from benchmark_utils import one_mb, make_url_messages, make_test_message
-from Queue import Queue, Empty
+import Queue
 
 rdkafka = sys.argv[9] == 'true'
 client_name = 'PykafkaRd' if rdkafka else 'Pykafka'
@@ -133,7 +133,7 @@ if action == 'Produce' or action == 'Both':
                                 error_count += 1
                             else:
                                 success_count += 1
-                        except Empty:
+                        except Queue.Empty:
                             time.sleep(0.01)
                     else:
                         time.sleep(0.01)
