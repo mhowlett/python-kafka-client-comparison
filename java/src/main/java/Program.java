@@ -48,6 +48,9 @@ public class Program {
 
     String topicName = "test-topic-p" + partitionCount + "-r1" + "-s" + messageLength;
 
+    int sentCount;
+    int messageCount;
+
     Producer<byte[], byte[]> producer = new KafkaProducer<>(props);
     ProducerRecord<byte[], byte[]> record;
     record = new ProducerRecord<>(topicName, message);
@@ -88,13 +91,21 @@ public class Program {
 
     long waitStartTime = System.currentTimeMillis();
 
-    if (acks > 0) {
+    if (!acks.equals("0")) {
       while (successCount + errorCount < sentCount) {
-        Thread.sleep(10);
+        try {
+          Thread.sleep(10);
+        }
+        catch (InterruptedException e) {
+          System.out.println("# interrupted.");
+          break;
+        }
       }
+      messageCount = successCount + errorCount;
     }
     else {
       producer.close();
+      messageCount = sentCount;
     }
 
     final long endTime = System.currentTimeMillis();
