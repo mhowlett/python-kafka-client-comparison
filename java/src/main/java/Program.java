@@ -37,6 +37,7 @@ public class Program {
     props.put("acks", acks);
     props.put("retries", 0);
     props.put("linger.ms", linger);
+    props.put("block.on.buffer.full", true);
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
@@ -56,6 +57,7 @@ public class Program {
       try {
           producer.send(record).wait();
       } catch (InterruptedException e) {
+          System.out.println("# interruped warming up.");
           return;
       }
     }
@@ -75,14 +77,25 @@ public class Program {
     
     errorCount = 0;
     successCount = 0;
+    sentCount = 0;
     while (true) {
-      producer.send(record, cb);
-      if ()
+      producer.send(record, cb); // configured to block if buffer full.
+      sentCount += 1;
+      if (System.currentTimeMillis() - startTime > durationSeconds * 1000) {
+        break;
+      }
     }
 
     long waitStartTime = System.currentTimeMillis();
 
-    producer.close();
+    if (acks > 0) {
+      while (successCount + errorCount < sentCount) {
+        Thread.sleep(10);
+      }
+    }
+    else {
+      producer.close();
+    }
 
     final long endTime = System.currentTimeMillis();
 
