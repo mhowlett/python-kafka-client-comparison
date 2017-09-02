@@ -32,12 +32,16 @@ public class Program {
     BasicConfigurator.configure();
     Logger.getRootLogger().setLevel(Level.ERROR);
 
+    // match setting used by confluent-kafka-python.
+    int bufferMemory = messageLength * 500000;
+
     Properties props = new Properties();
     props.put("bootstrap.servers", bootstrapServer);
     props.put("acks", acks);
     props.put("retries", 0);
     props.put("linger.ms", linger);
     props.put("block.on.buffer.full", true);
+    props.put("buffer.memory", bufferMemory);
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
@@ -57,15 +61,15 @@ public class Program {
 
     int produceWarmupCount = 20;
     for (int i=0; i<produceWarmupCount; ++i) {
-      try {
-          java.util.concurrent.Future<RecordMetadata> future = producer.send(record);
-          synchronized (future) {
-            future.wait();
-          }
-      } catch (InterruptedException e) {
-          System.out.println("# interruped warming up.");
-          return;
-      }
+      producer.send(record);
+    }
+
+    try {
+      // quick and dirty but will work in practice.
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      System.out.println("# interruped warming up.");
+      return;
     }
 
     Callback cb = new Callback() {
