@@ -6,7 +6,7 @@ from pykafka import KafkaClient
 from pykafka.exceptions import ProducerQueueFullError
 from pykafka.common import CompressionType
 from pykafka.connection import SslConfig
-import benchmark_utils
+from benchmark_utils import one_mb, make_url_messages, make_test_message
 
 rdkafka = sys.argv[9] == 'true'
 client_name = 'PykafkaRd' if rdkafka else 'Pykafka'
@@ -42,8 +42,6 @@ if security == 'SSL':
 
 action = sys.argv[8]
 
-produce_warmup_count = 20
-
 if compression == 'none':
     if sys.version_info >= (3, 0):
         topic_name = bytes('test-topic-p{0}-r1-s{1}'.format(num_partitions, message_len), 'utf-8')
@@ -64,8 +62,10 @@ if action == 'Produce' or action == 'Both':
 
     # _____ PRODUCE TEST ______
 
-    messages = [] if compression == 'none' else benchmark_utils.make_url_messages(urls_per_msg = message_len)
-    message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
+    produce_warmup_count = 20
+
+    messages = None if compression == 'none' else make_url_messages(urls_per_msg = message_len)
+    message = make_test_message(message_len) if compression == 'none' else None
 
     client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
     topic = client.topics[topic_name]
@@ -88,7 +88,7 @@ if action == 'Produce' or action == 'Both':
 
     with producer:
 
-        # warm-up, in case this makes a difference.
+        # warm-up.
         for _ in range(produce_warmup_count):
             producer.produce(message)
             if num_acks != 0:
@@ -152,9 +152,9 @@ if action == 'Produce' or action == 'Both':
 
         num_messages = success_count + error_count
         
-        mb_per_s = num_messages/elapsed*message_len/1048576
+        mb_per_s = num_messages/elapsed*message_len/one_mb
         if compression != 'none':
-            mb_per_s = total_size/elapsed/1048576
+            mb_per_s = total_size/elapsed/one_mb
 
         size = message_len
         if compression != 'none':
@@ -184,10 +184,15 @@ if action == 'Consume' or action == 'Both':
         
     # _____ CONSUME TEST ______
 
-    client = KafkaClient(hosts=bootstrap_server, ssl_config=security_conf)
+    client = KafkaClient(
+        hosts=bootstrap_server,
+        ssl_config=security_conf)
+        
     topic = client.topics[topic_name]
 
-    consumer = topic.get_simple_consumer(use_rdkafka=rdkafka, auto_commit_enable=False)
+    consumer = topic.get_simple_consumer(
+        use_rdkafka=rdkafka, 
+        auto_commit_enable=False)
 
     success_count = 0
     error_count = 0
@@ -215,9 +220,9 @@ if action == 'Consume' or action == 'Both':
 
     num_messages = success_count + error_count
 
-    mb_per_s = num_messages/elapsed*message_len/1048576
+    mb_per_s = num_messages/elapsed*message_len/one_mb
     if compression != 'none':
-        mb_per_s = total_size/elapsed/1048576
+        mb_per_s = total_size/elapsed/one_mb
 
     size = message_len
     if compression != 'none':
@@ -226,14 +231,14 @@ if action == 'Consume' or action == 'Both':
     if error_count == 0:
         print(
             '{9}, C, {0}, {1}, {2}, {3}, -, {4}, {5}, {6:.1f}, {7:.0f}, {8:.2f}'.format(
-                os.environ['CONFLUENT'], 
+                os.environ['CONFLUENT'],
                 num_partitions,
-                size, 
-                num_messages, 
+                size,
+                num_messages,
                 compression,
                 security,
-                elapsed, 
-                num_messages/elapsed, 
+                elapsed,
+                num_messages/elapsed,
                 mb_per_s,
                 client_name))
     else:

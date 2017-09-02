@@ -1,6 +1,8 @@
 import os
 import sys
 
+one_mb = 1048576.0
+
 def make_url_messages(urls_per_msg):
     messages = []
 

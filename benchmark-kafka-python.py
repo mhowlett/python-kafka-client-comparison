@@ -5,7 +5,7 @@ import uuid
 import os
 from kafka.errors import KafkaTimeoutError
 from kafka import KafkaProducer, KafkaConsumer
-import benchmark_utils
+from benchmark_utils import one_mb, make_url_messages, make_test_message
 
 bootstrap_servers = sys.argv[1] + ':29092'
 duration = int(sys.argv[2])
@@ -35,8 +35,6 @@ if security == 'none':
 
 action = sys.argv[8]
 
-produce_warmup_count = 20
-
 
 print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, Compression, TLS, s, Msg/s, Mb/s')
 
@@ -44,6 +42,8 @@ print('# Client, [P|C], Broker Version, Partitions, Msg Size, Msg Count, Acks, C
 if action == 'Produce' or action == 'Both':
 
     # _____ PRODUCE TEST ______
+
+    produce_warmup_count = 20
 
     producer = KafkaProducer(
         bootstrap_servers = bootstrap_servers,
@@ -58,8 +58,8 @@ if action == 'Produce' or action == 'Both':
         compression_type = compression_conf
     )
 
-    messages = [] if compression == 'none' else benchmark_utils.make_url_messages(urls_per_msg = message_len)
-    message = benchmark_utils.make_test_message(message_len) if compression == 'none' else ''
+    messages = None if compression == 'none' else make_url_messages(urls_per_msg = message_len)
+    message = make_test_message(message_len) if compression == 'none' else None
 
     # warm up.
     for _ in range(produce_warmup_count):
@@ -116,9 +116,9 @@ if action == 'Produce' or action == 'Both':
     elapsed = timeit.default_timer() - start_time
 
     num_messages = success_count
-    mb_per_s = num_messages/elapsed*message_len/1048576
+    mb_per_s = num_messages/elapsed*message_len/one_mb
     if compression != 'none':
-        mb_per_s = total_size/elapsed/1048576
+        mb_per_s = total_size/elapsed/one_mb
 
     size = message_len
     if compression != 'none':
@@ -171,10 +171,10 @@ if action == 'Consume' or action == 'Both':
     elapsed = timeit.default_timer() - start_time
 
     num_messages = success_count
-    
-    mb_per_s = num_messages/elapsed*message_len/1048576
+
+    mb_per_s = num_messages/elapsed*message_len/one_mb
     if compression != 'none':
-        mb_per_s = total_size/elapsed/1048576
+        mb_per_s = total_size/elapsed/one_mb
 
     size = message_len
     if compression != 'none':

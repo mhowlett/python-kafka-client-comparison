@@ -377,7 +377,7 @@ p_k = aggregate_data(d_k[0], type='P', version='3.3.0', client='KafkaPython', co
 p_p = aggregate_data(d_k[1], type='P', version='3.3.0', client='Pykafka', compression='none', security='none')
 p_r = aggregate_data(d_k[2], type='P', version='3.3.0', client='PykafkaRd', compression='none', security='none')
 p_c = aggregate_data(d_k[3], type='P', version='3.3.0', client='Confluent', compression='none', security='none')
-p_j = aggregate_data(d_k[4], type='P', version='3.3.0', client='Java', compression='none', security='none')
+p_j = aggregate_data(d_k[4], type='P', version='3.3.0', client='Confluent', compression='none', security='none')
 p_data = [p_k, p_p, p_r, p_c, p_j]
 make_plot_p_comparison(p_data)
 #p_data = [p_k, p_p, p_r, p_c]
@@ -388,7 +388,7 @@ c_k = aggregate_data(d_k[0], type="C", version='3.3.0', client='KafkaPython', ac
 c_p = aggregate_data(d_k[1], type='C', version='3.3.0', client='Pykafka', acks='-', compression='none', security='none')
 c_r = aggregate_data(d_k[2], type='C', version='3.3.0', client='PykafkaRd', acks='-', compression='none', security='none')
 c_c = aggregate_data(d_k[3], type="C", version='3.3.0', client='Confluent', acks='-', compression='none', security='none')
-c_j = aggregate_data(d_k[4], type='C', version='3.3.0', client='Java', acks='-', compression='none', security='none')
+c_j = aggregate_data(d_k[4], type='C', version='3.3.0', client='Confluent', acks='-', compression='none', security='none')
 c_data = [c_k, c_p, c_r, c_c, c_j]
 make_plot_c_comparison(c_data)
 exit(0)

@@ -37,43 +37,55 @@ run_test()
 run_test_group()
 {
     # warm up
-    run_test $1 3 $2 0 none none Produce # produce more than consume, becasue production usually faster.
-    run_test $1 3 $2 0 none none Produce
-    run_test $1 3 $2 0 none none Produce
-    run_test $1 3 $2 0 none none Produce
-    run_test $1 3 $2 0 none none Consume
-    run_test $1 3 $2 0 none none Consume # consume from beginning again. extra sure in page cache.
+    run_test $(( $1 * 4 )) 3 $2 0 none none Produce # produce much more than consume, because consumption usually faster.
+    run_test $(( $1 / 2 )) 3 $2 0 none none Consume # warmup
+    run_test $(( $1 / 2 )) 3 $2 0 none none Consume # consume from beginning again. make extra sure in page cache.
 
-    run_test $1 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
-    run_test $1 3 $2 1 none SSL Consume >> results-$client.csv
+    run_test $(( $1 / 4 )) 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
+    run_test $(( $1 / 4 )) 3 $2 1 none SSL Consume >> results-$client.csv
 
     run_test $1 3 $2 0 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none SSL Produce >> results-$client.csv
 
-    # no longer using replicated topics as broker is bottleneck.
+    # no longer testing replicated topics as broker is bottleneck.
     # run_test $1 3 $2 all none none Produce >> results-$client.csv
     # run_test $1 3 $2 all none SSL Produce >> results-$client.csv
 
     # warm up
-    run_test $1 1 $2 0 none none Produce
-    run_test $1 1 $2 0 none none Produce
-    run_test $1 1 $2 0 none none Produce
-    run_test $1 1 $2 0 none none Produce
-    run_test $1 1 $2 0 none none Consume
-    run_test $1 1 $2 0 none none Consume
+    run_test $(( $1 * 4 )) 1 $2 0 none none Produce
+    run_test $(( $1 / 2 )) 1 $2 0 none none Consume # warmup
+    run_test $(( $1 / 2 )) 1 $2 0 none none Consume
 
-    run_test $1 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
-    run_test $1 1 $2 1 none SSL Consume >> results-$client.csv
+    run_test $(( $1 / 4 )) 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
+    run_test $(( $1 / 4 )) 1 $2 1 none SSL Consume >> results-$client.csv
 
     run_test $1 1 $2 0 none none Produce >> results-$client.csv 
     run_test $1 1 $2 1 none none Produce >> results-$client.csv
     run_test $1 1 $2 1 none SSL Produce >> results-$client.csv
 
-    # no longer using replicated topics as broker is bottleneck.
+    # no longer testing replicated topics as broker is bottleneck.
     # run_test $1 1 $2 all none none Produce >> results-$client.csv
     # run_test $1 1 $2 all none SSL Produce >> results-$client.csv
 }
+
+run_test_core()
+{
+  run_test_group $duration 64
+  run_test_group $duration 128
+  run_test_group $duration 256
+  run_test_group $duration 512
+  run_test_group $duration 1024
+}
+
+run_test_core
+
+
+
+
+
+
+
 
 run_test_group_3_1()
 {
@@ -97,16 +109,6 @@ run_test_group_3_1_compress()
     run_test $1 1 $2 1 $3 none Produce >> results-$client.csv
 }
 
-run_test_core()
-{
-  run_test_group $duration 64
-  run_test_group $duration 128
-  run_test_group $duration 256
-  run_test_group $duration 512
-  run_test_group $duration 1024
-}
-
-run_test_core
 
 # use for core test set.
 # run_test_group_core $duration 64

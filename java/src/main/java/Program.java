@@ -47,27 +47,37 @@ public class Program {
 
     String topicName = "test-topic-p" + partitionCount + "-r1" + "-s" + messageLength;
 
+    Producer<byte[], byte[]> producer = new KafkaProducer<>(props);
+    ProducerRecord<byte[], byte[]> record;
+    record = new ProducerRecord<>(topicName, message);
+
+    int produceWarmupCount = 20;
+    for (int i=0; i<produceWarmupCount; ++i) {
+      try {
+          producer.send(record).wait();
+      } catch (InterruptedException e) {
+          return;
+      }
+    }
+
     Callback cb = new Callback() {
       public void onCompletion(RecordMetadata metadata, Exception e) {
         if (e != null) {
           errorCount += 1;
         }
         else {
-          if (successCount == 0) {
-            startTime = System.currentTimeMillis();
-          }
           successCount += 1;
         }
       }
     };
 
-    Producer<byte[], byte[]> producer = new KafkaProducer<>(props);
-    ProducerRecord<byte[], byte[]> record;
+    startTime = System.currentTimeMillis();
+    
     errorCount = 0;
     successCount = 0;
-    for (int i = 0; i < messageCount + 1; i++) {
-      record = new ProducerRecord<>(topicName, message);
+    while (true) {
       producer.send(record, cb);
+      if ()
     }
 
     long waitStartTime = System.currentTimeMillis();
