@@ -41,8 +41,8 @@ run_test_group()
     run_test $(( $1 / 2 )) 3 $2 0 none none Consume # warmup
     run_test $(( $1 / 2 )) 3 $2 0 none none Consume # consume from beginning again. make extra sure in page cache.
 
-    run_test $(( $1 / 4 )) 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
-    run_test $(( $1 / 4 )) 3 $2 1 none SSL Consume >> results-$client.csv
+    run_test $(( $1 / 2 )) 3 $2 1 none none Consume >> results-$client.csv # acks irrelevant
+    run_test $(( $1 / 2 )) 3 $2 1 none SSL Consume >> results-$client.csv
 
     run_test $1 3 $2 0 none none Produce >> results-$client.csv
     run_test $1 3 $2 1 none none Produce >> results-$client.csv
@@ -57,8 +57,8 @@ run_test_group()
     run_test $(( $1 / 2 )) 1 $2 0 none none Consume # warmup
     run_test $(( $1 / 2 )) 1 $2 0 none none Consume
 
-    run_test $(( $1 / 4 )) 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
-    run_test $(( $1 / 4 )) 1 $2 1 none SSL Consume >> results-$client.csv
+    run_test $(( $1 / 2 )) 1 $2 1 none none Consume >> results-$client.csv # acks irrelevant
+    run_test $(( $1 / 2 )) 1 $2 1 none SSL Consume >> results-$client.csv
 
     run_test $1 1 $2 0 none none Produce >> results-$client.csv 
     run_test $1 1 $2 1 none none Produce >> results-$client.csv
