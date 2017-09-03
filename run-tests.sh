@@ -20,7 +20,7 @@ fi
 run_test()
 {
     if [ "$client" = "java" ]; then
-        cmd="cd /src/java/; java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 100"
+        cmd="cd /src/java/; java -jar target/perftest-1.0-SNAPSHOT-jar-with-dependencies.jar"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 50"
         docker exec java-env sh -c "$cmd"
     elif [ "$client" = "pykafka" ]; then
         cmd="python /src/benchmark-$client.py"' $KAFKA'" $1 $2 $3 $4 $5 $6 $7 false"

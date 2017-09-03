@@ -32,7 +32,7 @@ public class Program {
     BasicConfigurator.configure();
     Logger.getRootLogger().setLevel(Level.ERROR);
 
-    // match setting used by confluent-kafka-python.
+    // match the queue.buffering.max.messages setting used in confluent-kafka-python tests.
     int bufferMemory = messageLength * 500000;
 
     Properties props = new Properties();
@@ -42,6 +42,7 @@ public class Program {
     props.put("linger.ms", linger);
     props.put("block.on.buffer.full", true);
     props.put("buffer.memory", bufferMemory);
+    props.put("batch.size", 1000000); // (bytes) match librdkafka default setting.
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
