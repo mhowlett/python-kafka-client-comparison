@@ -28,7 +28,7 @@ public class Program {
       String acks,
       int partitionCount,
       int linger
-  ) {
+  ) throws InterruptedException {
     BasicConfigurator.configure();
     Logger.getRootLogger().setLevel(Level.ERROR);
 
@@ -65,13 +65,8 @@ public class Program {
       producer.send(record);
     }
 
-    try {
-      // quick and dirty but will work in practice.
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      System.out.println("# interruped warming up.");
-      return;
-    }
+    // quick and dirty but good enough
+    Thread.sleep(5000);
 
     Callback cb = new Callback() {
       public void onCompletion(RecordMetadata metadata, Exception e) {
@@ -200,7 +195,7 @@ public class Program {
     );
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
 
     String bootstrapServer = args[0];
     int durationSeconds = Integer.parseInt(args[1]);
