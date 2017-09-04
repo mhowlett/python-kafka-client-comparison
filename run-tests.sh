@@ -71,10 +71,10 @@ run_test_group()
 
 run_test_core()
 {
-  #run_test_group $duration 64
-  #run_test_group $duration 128
-  #run_test_group $duration 256
-  #run_test_group $duration 512
+  run_test_group $duration 64
+  run_test_group $duration 128
+  run_test_group $duration 256
+  run_test_group $duration 512
   run_test_group $duration 1024
 }
 
