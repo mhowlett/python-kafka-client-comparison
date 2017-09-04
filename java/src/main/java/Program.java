@@ -74,6 +74,9 @@ public class Program {
           errorCount += 1;
         }
         else {
+          if (successCount == 0) {
+            System.out.println("# time to first ack: " + (System.currentTimeMillis() - startTime) + "ms");
+          }
           successCount += 1;
         }
       }
@@ -164,6 +167,9 @@ public class Program {
       ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
       boolean done = false;
       for (ConsumerRecord<byte[], byte[]> record : records) {
+        if (successCount == 0) {
+          System.out.println("# time to first msg: " + (System.currentTimeMillis() - startTime) + "ms");
+        }
         successCount += 1;
         if (System.currentTimeMillis() - startTime > durationSeconds * 1000) {
             done = true;
